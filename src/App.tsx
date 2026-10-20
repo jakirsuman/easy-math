@@ -136,7 +136,7 @@ function App() {
 }
 
 function HomeView({ progress, completedCount, onNavigate, onOpenLesson }: { progress: StoredProgress; completedCount: number; onNavigate: (view: View) => void; onOpenLesson: (path: LearningPath, id: string) => void }) {
-  const nextLesson = learningPaths[1].lessons[0]
+  const nextLesson = learningPaths.flatMap((path) => path.lessons.map((lesson) => ({ path, lesson }))).find(({ lesson }) => !progress.completedLessons.includes(lesson.id)) ?? { path: learningPaths[0], lesson: learningPaths[0].lessons[0] }
   return (
     <div className="page-content">
       <section className="welcome-row">
@@ -176,8 +176,8 @@ function HomeView({ progress, completedCount, onNavigate, onOpenLesson }: { prog
 
       <section className="continue-card">
         <div className="continue-icon"><BookOpen size={21} /></div>
-        <div className="continue-copy"><span>যেখান থেকে শুরু করবে</span><strong>ভগ্নাংশের শুরু</strong><small>লব, হর ও সমান অংশ · ৭ মিনিট</small></div>
-        <button className="icon-button continue-button" aria-label="পাঠ শুরু করো" onClick={() => onOpenLesson(learningPaths[1], nextLesson.id)}><ArrowRight size={20} /></button>
+        <div className="continue-copy"><span>যেখান থেকে শুরু করবে</span><strong>{nextLesson.lesson.title}</strong><small>{nextLesson.lesson.subtitle} · {nextLesson.lesson.duration}</small></div>
+        <button className="icon-button continue-button" aria-label="পাঠ শুরু করো" onClick={() => onOpenLesson(nextLesson.path, nextLesson.lesson.id)}><ArrowRight size={20} /></button>
       </section>
     </div>
   )
