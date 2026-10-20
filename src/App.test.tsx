@@ -55,4 +55,26 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByText('নির্ভুলতা')).toBeInTheDocument()
   })
 
+
+  it('opens the new decimal lesson and checks understanding with feedback', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'দশমিক সংখ্যা খুলুন' }))
+    expect(screen.getByRole('heading', { name: 'দশমিক সংখ্যা' })).toBeInTheDocument()
+    expect(screen.getByText(/দশমিক সংখ্যা পূর্ণ এককের ভগ্নাংশ প্রকাশ করে/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '০.৮৫' }))
+    fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই/ }))
+    expect(screen.getByText('সঠিক উত্তর!')).toBeInTheDocument()
+    expect(screen.getByText(/০\.৬০ \+ ০\.২৫ = ০\.৮৫/)).toBeInTheDocument()
+  })
+
+  it('makes the added factors, fraction operations, proportion and angles lessons available', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    expect(screen.getByRole('button', { name: 'গুণনীয়ক ও গুণিতক খুলুন' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'ভগ্নাংশের যোগ ও বিয়োগ খুলুন' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'সমানুপাত ও একক দর খুলুন' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'কোণ ও ডিগ্রি খুলুন' })).toBeInTheDocument()
+  })
+
 })
