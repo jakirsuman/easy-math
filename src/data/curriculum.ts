@@ -31,6 +31,10 @@ export const learningPaths: LearningPath[] = [
       { id: 'number-line', title: 'সংখ্যারেখায় সংখ্যা', subtitle: 'সংখ্যার অবস্থান ও দূরত্ব', duration: '৮ মিনিট', status: 'available', kind: 'visual', objective: 'সংখ্যারেখায় সংখ্যা সাজানো ও দূরত্ব বোঝা।' },
       { id: 'operations', title: 'যোগ, বিয়োগ, গুণ ও ভাগ', subtitle: 'চারটি মৌলিক প্রক্রিয়া', duration: '১০ মিনিট', status: 'available', kind: 'practice', objective: 'দৈনন্দিন সমস্যায় মৌলিক গাণিতিক প্রক্রিয়া প্রয়োগ করা।' },
       { id: 'factors-multiples', title: 'গুণনীয়ক ও গুণিতক', subtitle: 'সংখ্যার গুণের সম্পর্ক', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'গুণনীয়ক ও গুণিতক আলাদা করতে এবং ভাগ দিয়ে যাচাই করতে পারা।' },
+      { id: 'negative-numbers', title: 'ধনাত্মক ও ঋণাত্মক সংখ্যা', subtitle: 'শূন্যের দুই পাশ', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'সংখ্যারেখায় ধনাত্মক, ঋণাত্মক ও শূন্যের অবস্থান বোঝা।' },
+      { id: 'order-of-operations', title: 'হিসাবের সঠিক ক্রম', subtitle: 'বন্ধনী, গুণ-ভাগ, যোগ-বিয়োগ', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'একাধিক প্রক্রিয়া থাকলে সঠিক ক্রমে হিসাব করা।' },
+      { id: 'hcf-lcm', title: 'গ.সা.গু. ও ল.সা.গু.', subtitle: 'সাধারণ গুণনীয়ক ও গুণিতক', duration: '৯ মিনিট', status: 'available', kind: 'lesson', objective: 'দুটি সংখ্যার গ.সা.গু. ও ল.সা.গু. নির্ণয় করা।' },
+      { id: 'averages', title: 'গড় নির্ণয়', subtitle: 'মোট যোগফল থেকে গড়', duration: '৭ মিনিট', status: 'available', kind: 'practice', objective: 'কয়েকটি মানের গড় বের করতে এবং তার অর্থ বুঝতে পারা।' },
     ],
   },
   {
@@ -48,6 +52,8 @@ export const learningPaths: LearningPath[] = [
       { id: 'percentages', title: 'শতকরা', subtitle: '১০০-এর মধ্যে কত?', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'শতকরা হিসাব করা ও বাস্তব জীবনে প্রয়োগ করা।' },
       { id: 'fraction-addition', title: 'ভগ্নাংশের যোগ ও বিয়োগ', subtitle: 'সমান হর ও ভিন্ন হর', duration: '১০ মিনিট', status: 'available', kind: 'visual', objective: 'সমান হর ও ভিন্ন হরের ভগ্নাংশ যোগ-বিয়োগ করতে পারা।' },
       { id: 'decimal-operations', title: 'দশমিকের যোগ ও বিয়োগ', subtitle: 'দশমিক বিন্দু মিলিয়ে হিসাব', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'দশমিক ঘর ঠিক রেখে যোগ ও বিয়োগ করতে পারা।' },
+      { id: 'fraction-multiply-divide', title: 'ভগ্নাংশের গুণ ও ভাগ', subtitle: 'ভগ্নাংশের সঙ্গে ভগ্নাংশ', duration: '৯ মিনিট', status: 'available', kind: 'visual', objective: 'ভগ্নাংশ গুণ ও ভাগের নিয়ম উদাহরণসহ প্রয়োগ করা।' },
+      { id: 'rounding-decimals', title: 'দশমিক পূর্ণীকরণ ও অনুমান', subtitle: 'নিকটতম দশম ও শতক', duration: '৭ মিনিট', status: 'available', kind: 'practice', objective: 'দশমিককে নির্দিষ্ট ঘর পর্যন্ত পূর্ণ করতে এবং হিসাবের মান অনুমান করতে পারা।' },
     ],
   },
   {
@@ -62,6 +68,7 @@ export const learningPaths: LearningPath[] = [
       { id: 'variables', title: 'চলক ও রাশি', subtitle: 'x আসলে কী?', duration: '৯ মিনিট', status: 'available', kind: 'visual', objective: 'চলক ও বীজগাণিতিক রাশির অর্থ বোঝা।' },
       { id: 'linear-equations', title: 'সহজ সমীকরণ', subtitle: 'সমতার দুই পাশ', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'এক ধাপের রৈখিক সমীকরণ সমাধান করা।' },
       { id: 'proportion', title: 'সমানুপাত ও একক দর', subtitle: 'একটির দাম থেকে অনেকগুলোর দাম', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'একক মান ও সমানুপাত ব্যবহার করে অজানা পরিমাণ বের করা।' },
+      { id: 'two-step-equations', title: 'দুই ধাপের সমীকরণ', subtitle: 'অজানাকে একা করি', duration: '৯ মিনিট', status: 'available', kind: 'lesson', objective: 'দুই ধাপে বিপরীত গাণিতিক প্রক্রিয়া ব্যবহার করে সমীকরণ সমাধান করা।' },
     ],
   },
   {
@@ -75,6 +82,8 @@ export const learningPaths: LearningPath[] = [
       { id: 'shapes', title: 'আকার ও বৈশিষ্ট্য', subtitle: 'ত্রিভুজ, বর্গ ও বৃত্ত', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'মৌলিক জ্যামিতিক আকৃতি শনাক্ত করা।' },
       { id: 'perimeter-area', title: 'পরিসীমা ও ক্ষেত্রফল', subtitle: 'সীমানা আর ভেতরের জায়গা', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'পরিসীমা ও ক্ষেত্রফলের পার্থক্য এবং হিসাব বোঝা।' },
       { id: 'angles', title: 'কোণ ও ডিগ্রি', subtitle: 'সূক্ষ্ম, সমকোণ ও স্থূলকোণ', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'কোণ পরিমাপ ও কোণের ধরন শনাক্ত করতে পারা।' },
+      { id: 'unit-conversion', title: 'একক রূপান্তর', subtitle: 'মিটার, সেন্টিমিটার ও কিলোমিটার', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'দৈর্ঘ্যের এককগুলোর সম্পর্ক ব্যবহার করে একক রূপান্তর করা।' },
+      { id: 'triangles', title: 'ত্রিভুজের ধরন ও কোণ', subtitle: 'বাহু ও কোণ দিয়ে চিনি', duration: '৮ মিনিট', status: 'available', kind: 'visual', objective: 'বাহু ও কোণের ভিত্তিতে ত্রিভুজের ধরন শনাক্ত করা।' },
     ],
   },
 ]
