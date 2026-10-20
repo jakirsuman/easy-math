@@ -4,8 +4,18 @@
 
 Use **Anek Bangla** as the primary typeface for Bengali script and numerical learning screens, with **Inter** as a fallback for Latin interface details. Numerical counters, fractions, scores, and live model outputs should prefer Anek Bangla and use tabular numeral spacing where supported. Avoid applying Latin-only font stacks to elements that contain Bengali digits or mixed-script text. Keep Bengali line height generous for conjuncts and vowel marks. Use the Sopan logo's blue palette: #0B58FC as the primary blue and #0336A4 for dark emphasis, supported by pale blue surfaces instead of the former purple theme.
 
+## Age bands and child-friendly writing
+
+The Learn screen starts with the 8–9 age band because the product welcomes children from age 8. Learners can switch to 10–11, 12+, or all lessons. The bands are friendly recommendations, not a formal grade placement or a restriction on what a child may learn.
+
+- **8–9 years:** familiar objects, small numbers, pictures and one-step explanations.
+- **10–11 years:** fractions, decimals, percentages, measuring and multi-step examples with each step shown.
+- **12+ years:** negative numbers, fraction operations, ratios and introductory algebra, still explained in everyday Bengali.
+
+Use natural Bangladeshi Bengali and address the learner as **তুমি**. Introduce a maths term in plain language before asking children to use it. Prefer short sentences, familiar examples, one new idea at a time, and encouraging hints. Keep symbols and formulas only when the surrounding explanation makes them understandable. Avoid shame-based feedback or language that treats a mistake as failure.
+
 ## Learner experience
-Each available lesson follows a Bengali-first sequence:
+Each available lesson follows a Bengali-first sequence, with plain-language explanations and age-band labels:
 
 1. **Concept** — explain the idea in everyday language.
 2. **Worked example** — connect the idea to a familiar situation and show the calculation.
