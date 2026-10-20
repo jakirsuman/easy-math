@@ -9,3 +9,18 @@
 @media(max-width:390px){.welcome-row h1{font-size:21px}.date-chip{grid-template-columns:1fr;text-align:center}.date-sun{display:none}.date-chip strong{grid-column:1}.hero-card{min-height:410px}.hero-art{height:160px}.fraction-disc{right:24%}.fraction-display{gap:8px}.fraction-wheel{width:91px;height:91px}.wheel-center{width:51px;height:51px}.fraction-meaning>strong{font-size:18px}.fraction-meaning p{font-size:8px}.meaning-legend{gap:3px}.meaning-legend small{font-size:6px}.stats-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.stat-card{padding:9px 7px}.stat-label{font-size:8px}.stat-value{font-size:17px}.stat-detail{font-size:7px}}
 
 .equivalence-check{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:15px;padding:15px;background:#fff;border:1px solid #ececf3;border-radius:12px}.equivalence-check>div strong{font-size:12px}.equivalence-check>div p{font-size:10px;color:#9295a8;margin:4px 0 0}.equivalence-check form{display:flex;gap:8px}.equivalence-check input{min-width:0;flex:1;border:1px solid #e5e5f0;border-radius:9px;padding:10px 12px;font-size:12px;color:#42455e;background:#fcfcff}.equivalence-check .button-primary{background:#6d5ce8;color:#fff}.equivalence-check>p{margin:0;font-size:11px;line-height:1.7;padding:9px 10px;border-radius:8px}.equivalence-correct{background:#edfbf4;color:#25845e}.equivalence-incorrect{background:#fff7ec;color:#a87934}
+
+
+.practice-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:760px;margin:0 auto 12px}
+.practice-mode{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid #ececf3;background:#fff;border-radius:12px;padding:12px;color:#7c7f95}
+.practice-mode>span{display:grid;gap:3px}.practice-mode strong{font-size:11px}.practice-mode small{font-size:9px;color:#9a9caf}
+.practice-mode-active{border-color:#a69af2;background:#f7f5ff;color:#6554dc}
+.topic-filter{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:760px;margin:0 auto 12px;background:#fff;border:1px solid #ececf3;border-radius:11px;padding:10px 13px;color:#777b91;font-size:11px}
+.topic-filter select{max-width:70%;border:1px solid #e6e5f0;border-radius:8px;background:#fcfcff;padding:8px;color:#514d75;font-size:11px}
+.quiz-result-card{max-width:680px;margin:35px auto;background:#fff;border:1px solid #ececf3;border-radius:18px;padding:30px;text-align:center}
+.result-icon{height:64px;width:64px;display:grid;place-items:center;margin:0 auto 15px;border-radius:20px;background:#f0edff;color:#6d5ce8}
+.quiz-result-card h1{font-size:27px;margin:8px 0}.quiz-result-card>p{font-size:12px;line-height:1.8;color:#898da2;max-width:430px;margin:0 auto}
+.result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0}
+.result-stats>div{display:grid;gap:6px;padding:14px 7px;border-radius:11px;background:#faf9ff}.result-stats span{font-size:10px;color:#9699ad}.result-stats strong{font-size:21px;color:#6252d9}
+.result-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+@media(max-width:680px){.practice-modes{gap:7px}.practice-mode{padding:10px 8px;gap:7px}.practice-mode strong{font-size:10px}.practice-mode small{font-size:8px}.topic-filter{align-items:flex-start;flex-direction:column}.topic-filter select{max-width:100%;width:100%}.quiz-result-card{padding:20px 14px}.quiz-result-card h1{font-size:23px}.result-stats{gap:6px}.result-stats>div{padding:11px 4px}.result-stats span{font-size:8px}.result-stats strong{font-size:18px}}
