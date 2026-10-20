@@ -170,7 +170,7 @@ function HomeView({ progress, completedCount, onNavigate, onOpenLesson }: { prog
       <section className="section-block">
         <div className="section-heading"><div><span className="eyebrow">তোমার পরিকল্পনা</span><h2>শেখার পথ</h2></div><button className="text-link" onClick={() => onNavigate('learn')}>সব দেখো <ArrowRight size={16} /></button></div>
         <div className="path-grid">
-          {learningPaths.map((path) => <PathCard key={path.id} path={path} onClick={() => onNavigate('learn')} />)}
+          {learningPaths.map((path) => <PathCard key={path.id} path={path} completed={completed} onClick={() => onNavigate('learn')} />)}
         </div>
       </section>
 
@@ -187,8 +187,10 @@ function StatCard({ icon, label, value, detail, tone }: { icon: ReactNode; label
   return <article className="stat-card"><div className={`stat-icon tone-${tone}`}>{icon}</div><div className="stat-label">{label}</div><strong className="stat-value">{value}</strong><span className="stat-detail">{detail}</span></article>
 }
 
-function PathCard({ path, onClick }: { path: LearningPath; onClick: () => void }) {
-  return <button className="path-card" onClick={onClick}><div className={`path-icon path-${path.color}`}>{path.icon}</div><div className="path-card-copy"><strong>{path.title}</strong><span>{path.description}</span><div className="progress-track"><div style={{ width: `${path.progress}%` }} /></div><small>{path.progress}% সম্পন্ন</small></div><ChevronRight size={18} className="path-chevron" /></button>
+function PathCard({ path, completed, onClick }: { path: LearningPath; completed: string[]; onClick: () => void }) {
+  const completedInPath = path.lessons.filter((lesson) => completed.includes(lesson.id)).length
+  const progress = path.lessons.length ? Math.round(completedInPath / path.lessons.length * 100) : 0
+  return <button className="path-card" onClick={onClick}><div className={`path-icon path-${path.color}`}>{path.icon}</div><div className="path-card-copy"><strong>{path.title}</strong><span>{path.description}</span><div className="progress-track"><div style={{ width: `${progress}%` }} /></div><small>{progress}% সম্পন্ন · {completedInPath}/{path.lessons.length}টি পাঠ</small></div><ChevronRight size={18} className="path-chevron" /></button>
 }
 
 function LearnView({ completed, onOpenLesson }: { completed: string[]; onOpenLesson: (path: LearningPath, id: string) => void }) {
