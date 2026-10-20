@@ -7,6 +7,7 @@ import {
 import { learningPaths, starterQuestions } from './data/curriculum'
 import type { LearningPath } from './data/curriculum'
 import { areEquivalentFractions } from './math/fractions'
+import { lessonContent } from './data/lessonContent'
 
 type View = 'home' | 'learn' | 'lesson' | 'practice' | 'lab' | 'progress'
 type StoredProgress = { xp: number; completedLessons: string[]; correctAnswers: number; attempts: number; streak: number }
@@ -135,7 +136,7 @@ function App() {
 }
 
 function HomeView({ progress, completedCount, onNavigate, onOpenLesson }: { progress: StoredProgress; completedCount: number; onNavigate: (view: View) => void; onOpenLesson: (path: LearningPath, id: string) => void }) {
-  const nextLesson = learningPaths[1].lessons[0]
+  const nextLesson = learningPaths.flatMap((path) => path.lessons.map((lesson) => ({ path, lesson }))).find(({ lesson }) => !progress.completedLessons.includes(lesson.id)) ?? { path: learningPaths[0], lesson: learningPaths[0].lessons[0] }
   return (
     <div className="page-content">
       <section className="welcome-row">
@@ -169,14 +170,14 @@ function HomeView({ progress, completedCount, onNavigate, onOpenLesson }: { prog
       <section className="section-block">
         <div className="section-heading"><div><span className="eyebrow">তোমার পরিকল্পনা</span><h2>শেখার পথ</h2></div><button className="text-link" onClick={() => onNavigate('learn')}>সব দেখো <ArrowRight size={16} /></button></div>
         <div className="path-grid">
-          {learningPaths.map((path) => <PathCard key={path.id} path={path} onClick={() => onNavigate('learn')} />)}
+          {learningPaths.map((path) => <PathCard key={path.id} path={path} completed={progress.completedLessons} onClick={() => onNavigate('learn')} />)}
         </div>
       </section>
 
       <section className="continue-card">
         <div className="continue-icon"><BookOpen size={21} /></div>
-        <div className="continue-copy"><span>যেখান থেকে শুরু করবে</span><strong>ভগ্নাংশের শুরু</strong><small>লব, হর ও সমান অংশ · ৭ মিনিট</small></div>
-        <button className="icon-button continue-button" aria-label="পাঠ শুরু করো" onClick={() => onOpenLesson(learningPaths[1], nextLesson.id)}><ArrowRight size={20} /></button>
+        <div className="continue-copy"><span>যেখান থেকে শুরু করবে</span><strong>{nextLesson.lesson.title}</strong><small>{nextLesson.lesson.subtitle} · {nextLesson.lesson.duration}</small></div>
+        <button className="icon-button continue-button" aria-label="পাঠ শুরু করো" onClick={() => onOpenLesson(nextLesson.path, nextLesson.lesson.id)}><ArrowRight size={20} /></button>
       </section>
     </div>
   )
@@ -186,8 +187,10 @@ function StatCard({ icon, label, value, detail, tone }: { icon: ReactNode; label
   return <article className="stat-card"><div className={`stat-icon tone-${tone}`}>{icon}</div><div className="stat-label">{label}</div><strong className="stat-value">{value}</strong><span className="stat-detail">{detail}</span></article>
 }
 
-function PathCard({ path, onClick }: { path: LearningPath; onClick: () => void }) {
-  return <button className="path-card" onClick={onClick}><div className={`path-icon path-${path.color}`}>{path.icon}</div><div className="path-card-copy"><strong>{path.title}</strong><span>{path.description}</span><div className="progress-track"><div style={{ width: `${path.progress}%` }} /></div><small>{path.progress}% সম্পন্ন</small></div><ChevronRight size={18} className="path-chevron" /></button>
+function PathCard({ path, completed, onClick }: { path: LearningPath; completed: string[]; onClick: () => void }) {
+  const completedInPath = path.lessons.filter((lesson) => completed.includes(lesson.id)).length
+  const progress = path.lessons.length ? Math.round(completedInPath / path.lessons.length * 100) : 0
+  return <button className="path-card" onClick={onClick}><div className={`path-icon path-${path.color}`}>{path.icon}</div><div className="path-card-copy"><strong>{path.title}</strong><span>{path.description}</span><div className="progress-track"><div style={{ width: `${progress}%` }} /></div><small>{progress}% সম্পন্ন · {completedInPath}/{path.lessons.length}টি পাঠ</small></div><ChevronRight size={18} className="path-chevron" /></button>
 }
 
 function LearnView({ completed, onOpenLesson }: { completed: string[]; onOpenLesson: (path: LearningPath, id: string) => void }) {
@@ -205,27 +208,50 @@ function LessonView({ lessonId, path, completed, onBack, onComplete, onPractice 
   const [denominator, setDenominator] = useState(2)
   const [showHint, setShowHint] = useState(false)
   const [checked, setChecked] = useState(false)
+  const [selectedAnswer, setSelectedAnswer] = useState('')
+  const [answerSubmitted, setAnswerSubmitted] = useState(false)
   const lesson = path.lessons.find((item) => item.id === lessonId)
-  const isEquivalent = lessonId === 'equivalent-fractions'
-  const title = lesson?.title ?? 'ভগ্নাংশের শুরু'
+  const content = lessonContent[lessonId] ?? lessonContent['fraction-basics']
+  const isFractionModel = ['fraction-basics', 'equivalent-fractions', 'fraction-practice', 'fraction-addition'].includes(lessonId)
+  const isCorrect = selectedAnswer === content.answer
+
+  useEffect(() => {
+    setNumerator(1)
+    setDenominator(2)
+    setShowHint(false)
+    setChecked(false)
+    setSelectedAnswer('')
+    setAnswerSubmitted(false)
+  }, [lessonId])
+
   return <div className="page-content lesson-page">
     <button className="back-link" onClick={onBack}><ArrowLeft size={16} /> শেখার পথে ফিরে যাও</button>
-    <div className="lesson-topline"><span className="lesson-tag">{path.title}</span><span><Clock3 size={14} /> {lesson?.duration ?? '৭ মিনিট'}</span><span>শুরুর স্তর</span></div>
-    <h1 className="lesson-title">{title}</h1><p className="lesson-lead">{lesson?.objective ?? 'একটি পুরো জিনিসকে সমান ভাগে ভাগ করলে ভগ্নাংশ তৈরি হয়।'}</p>
+    <div className="lesson-topline"><span className="lesson-tag">{path.title}</span><span><Clock3 size={14} /> {lesson?.duration ?? '৮ মিনিট'}</span><span>ধাপে ধাপে শেখা</span></div>
+    <h1 className="lesson-title">{lesson?.title ?? 'গণিতের পাঠ'}</h1>
+    <p className="lesson-lead">{lesson?.objective ?? content.concept}</p>
     <div className="lesson-layout">
       <article className="lesson-main-card">
-        <div className="lesson-section-title"><span className="step-number">১</span><div><h2>ভগ্নাংশ কী?</h2><p>একটি পুরো জিনিসের সমান অংশ বোঝানোর উপায়</p></div></div>
-        <p className="lesson-paragraph">ধরো, তোমার কাছে একটি রুটি আছে। তুমি রুটিটি সমান <strong>২ ভাগে</strong> কাটলে এবং তার <strong>১ ভাগ</strong> নিলে। তাহলে তুমি রুটির অর্ধেক নিয়েছ। গণিতে একে লিখি <span className="inline-math">১/২</span>।</p>
-        <FractionVisualizer numerator={numerator} denominator={denominator} onNumeratorChange={(n) => { setNumerator(Math.min(n, denominator)); setChecked(false) }} onDenominatorChange={(d) => { setDenominator(d); setNumerator((n) => Math.min(n, d)); setChecked(false) }} />
-        <div className="lesson-section-title second-step"><span className="step-number">২</span><div><h2>{isEquivalent ? 'একই মান, ভিন্ন রূপ' : 'লব আর হর চিনে রাখো'}</h2><p>ভগ্নাংশের দুই অংশের আলাদা কাজ আছে</p></div></div>
-        <div className="fraction-parts"><div className="fraction-part numerator-part"><strong>{isEquivalent ? 'লব' : 'উপরের সংখ্যা'}</strong><div className="big-fraction">{numerator}</div><p>কতটি অংশ নেওয়া হয়েছে</p></div><div className="fraction-divider" /><div className="fraction-part denominator-part"><strong>{isEquivalent ? 'হর' : 'নিচের সংখ্যা'}</strong><div className="big-fraction">{denominator}</div><p>মোট সমান অংশের সংখ্যা</p></div></div>
-        <div className="lesson-tip"><Lightbulb size={19} /><p><strong>মনে রাখো:</strong> পুরো জিনিসকে সমান ভাগে ভাগ করতে হবে। ভাগগুলো সমান না হলে এই ভগ্নাংশের মডেলটি ঠিক হবে না।</p></div>
-        {showHint && <div className="hint-panel"><strong>ছোট্ট ইঙ্গিত</strong><p>উপরের সংখ্যাটি বলে কয়টি অংশ রঙ করা হয়েছে। নিচের সংখ্যাটি বলে মোট কয়টি সমান অংশ আছে।</p></div>}
-        <div className="lesson-actions"><button className="button-secondary" onClick={() => setShowHint((show) => !show)}><Lightbulb size={16} /> {showHint ? 'ইঙ্গিত লুকাও' : 'ইঙ্গিত দেখো'}</button><button className="button-primary" onClick={() => { setChecked(true); onComplete() }}>{completed ? 'পাঠ সম্পন্ন' : 'পাঠ শেষ করো'} <Check size={16} /></button></div>
+        <div className="lesson-section-title"><span className="step-number">১</span><div><h2>ধারণাটি বুঝি</h2><p>প্রথমে অর্থ বোঝো, তারপর সূত্র ব্যবহার করো</p></div></div>
+        <p className="lesson-paragraph">{content.concept}</p>
+        {isFractionModel && <FractionVisualizer numerator={numerator} denominator={denominator} onNumeratorChange={(n) => setNumerator(Math.min(n, denominator))} onDenominatorChange={(d) => { setDenominator(d); setNumerator((n) => Math.min(n, d)) }} />}
+        <div className="lesson-section-title second-step"><span className="step-number">২</span><div><h2>{content.exampleTitle}</h2><p>ধাপে ধাপে একটি উদাহরণ</p></div></div>
+        <div className="guided-example"><div className="guided-example-mark"><Sparkles size={18} /></div><div><strong>উদাহরণ</strong><p>{content.example}</p></div></div>
+        <div className="guided-steps">{content.steps.map((step, index) => <div className="guided-step" key={step}><span>{index + 1}</span><p>{step}</p></div>)}</div>
+        <div className="lesson-tip"><Lightbulb size={19} /><p><strong>যে ভুলটি এড়াবে:</strong> {content.mistake}</p></div>
+        <div className="lesson-section-title second-step"><span className="step-number">৩</span><div><h2>এবার নিজে যাচাই করো</h2><p>উত্তর বেছে নিয়ে ব্যাখ্যা দেখো</p></div></div>
+        <div className="lesson-check-card">
+          <div className="lesson-check-label"><CircleHelp size={17} /><span>দ্রুত যাচাই</span></div>
+          <h3>{content.question}</h3>
+          <div className="lesson-check-options">{content.options.map((option) => <button key={option} disabled={answerSubmitted} className={`lesson-check-option ${selectedAnswer === option ? 'lesson-check-selected' : ''} ${answerSubmitted && option === content.answer ? 'lesson-check-correct' : ''} ${answerSubmitted && selectedAnswer === option && !isCorrect ? 'lesson-check-wrong' : ''}`} onClick={() => setSelectedAnswer(option)}>{option}{answerSubmitted && option === content.answer && <Check size={16} />}</button>)}</div>
+          {!answerSubmitted ? <button className="button-primary lesson-check-submit" disabled={!selectedAnswer} onClick={() => setAnswerSubmitted(true)}>উত্তর যাচাই <ArrowRight size={16} /></button> : <div className={`lesson-answer-feedback ${isCorrect ? 'lesson-answer-right' : 'lesson-answer-review'}`}><strong>{isCorrect ? 'সঠিক উত্তর!' : `সঠিক উত্তর: ${content.answer}`}</strong><p>{content.explanation}</p><button className="text-link" onClick={() => { setSelectedAnswer(''); setAnswerSubmitted(false) }}><RotateCcw size={14} /> আবার চেষ্টা করো</button></div>}
+        </div>
+        <div className="takeaway-card"><h3><Check size={17} /> মনে রাখার ৩টি বিষয়</h3><ul>{content.takeaways.map((item) => <li key={item}>{item}</li>)}</ul></div>
+        {showHint && <div className="hint-panel"><strong>ছোট্ট ইঙ্গিত</strong><p>{content.hint}</p></div>}
+        <div className="lesson-actions"><button className="button-secondary" onClick={() => setShowHint((show) => !show)}><Lightbulb size={16} /> {showHint ? 'ইঙ্গিত লুকাও' : 'ইঙ্গিত দেখো'}</button><button className="button-primary" onClick={() => { setChecked(true); onComplete() }}>{completed || checked ? 'পাঠ সম্পন্ন' : 'পাঠ শেষ করো'} <Check size={16} /></button></div>
         {checked && <div className="success-note"><Check size={17} /> ভালো! তুমি এই পাঠটি সম্পন্ন করেছ। এবার অনুশীলন করে দেখো।</div>}
-        <button className="practice-banner" onClick={onPractice}><div><strong>এবার নিজে চেষ্টা করো</strong><span>ছোট্ট কুইজে শেখা যাচাই করো</span></div><span className="practice-banner-arrow"><ArrowRight size={18} /></span></button>
+        <button className="practice-banner" onClick={onPractice}><div><strong>এবার নিজে চেষ্টা করো</strong><span>বিভিন্ন ধরনের প্রশ্নে শেখা যাচাই করো</span></div><span className="practice-banner-arrow"><ArrowRight size={18} /></span></button>
       </article>
-      <aside className="lesson-side-card"><div className="side-card-heading"><Target size={18} /><strong>এই পাঠে শিখবে</strong></div><ul><li><Check size={15} /> ভগ্নাংশের ধারণা</li><li><Check size={15} /> লব ও হর চেনা</li><li><Check size={15} /> সমান অংশ বোঝা</li></ul><div className="side-progress"><div className="side-progress-label"><span>পাঠের অগ্রগতি</span><strong>{checked || completed ? '১০০%' : '৩৩%'}</strong></div><div className="progress-track"><div style={{ width: checked || completed ? '100%' : '33%' }} /></div></div><div className="side-encouragement"><Sparkles size={18} /><span>তাড়াহুড়ো নয়—বুঝে শেখাই আসল।</span></div></aside>
+      <aside className="lesson-side-card"><div className="side-card-heading"><Target size={18} /><strong>এই পাঠে শিখবে</strong></div><ul>{content.takeaways.map((item) => <li key={item}><Check size={15} /> {item}</li>)}</ul><div className="side-progress"><div className="side-progress-label"><span>পাঠের অগ্রগতি</span><strong>{checked || completed ? '১০০%' : answerSubmitted ? '৮০%' : '৩৩%'}</strong></div><div className="progress-track"><div style={{ width: checked || completed ? '100%' : answerSubmitted ? '80%' : '33%' }} /></div></div><div className="side-encouragement"><Sparkles size={18} /><span>তাড়াহুড়ো নয়—বুঝে শেখাই আসল।</span></div></aside>
     </div>
   </div>
 }
