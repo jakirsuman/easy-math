@@ -62,9 +62,10 @@ describe('Easy Math learning flow', () => {
   it('opens the new decimal lesson and checks understanding with feedback', () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: '১০–১১ বছর' }))
     fireEvent.click(screen.getByRole('button', { name: 'দশমিক সংখ্যা খুলুন' }))
     expect(screen.getByRole('heading', { name: 'দশমিক সংখ্যা' })).toBeInTheDocument()
-    expect(screen.getByText(/দশমিক সংখ্যা পূর্ণ এককের ভগ্নাংশ প্রকাশ করে/)).toBeInTheDocument()
+    expect(screen.getByText(/দশমিক সংখ্যা দিয়ে পুরো জিনিসের সঙ্গে তার ছোট অংশও দেখানো যায়/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '০.৮৫' }))
     fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই/ }))
     expect(screen.getByText('সঠিক উত্তর!')).toBeInTheDocument()
@@ -74,6 +75,7 @@ describe('Easy Math learning flow', () => {
   it('makes the added factors, fraction operations, proportion and angles lessons available', () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'সব বয়সের পাঠ' }))
     expect(screen.getByRole('button', { name: 'গুণনীয়ক ও গুণিতক খুলুন' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'ভগ্নাংশের যোগ ও বিয়োগ খুলুন' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'সমানুপাত ও একক দর খুলুন' })).toBeInTheDocument()
@@ -110,6 +112,7 @@ describe('Easy Math learning flow', () => {
   it('provides the new foundational lessons in the learning path', () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'সব বয়সের পাঠ' }))
     expect(screen.getByRole('button', { name: 'ধনাত্মক ও ঋণাত্মক সংখ্যা খুলুন' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'গ.সা.গু. ও ল.সা.গু. খুলুন' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'ভগ্নাংশের গুণ ও ভাগ খুলুন' })).toBeInTheDocument()
@@ -134,6 +137,18 @@ describe('Easy Math learning flow', () => {
     const wordmark = screen.getByRole('img', { name: 'Sopan wordmark' })
     expect(wordmark).toHaveAttribute('src', '/sopan-wordmark.svg')
     expect(screen.getByRole('button', { name: 'সহজ গণিত হোম' })).toBeInTheDocument()
+  })
+
+
+  it('makes the full lesson row clickable and shows age-appropriate lessons by default', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    expect(screen.getByText('সংখ্যা, যোগ-বিয়োগ, ভগ্নাংশ আর পরিচিত আকার দিয়ে শুরু করো।')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'সংখ্যার স্থানীয় মান খুলুন' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'দুই ধাপের সমীকরণ খুলুন' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'সংখ্যার স্থানীয় মান খুলুন' }))
+    expect(screen.getByRole('heading', { name: 'সংখ্যার স্থানীয় মান' })).toBeInTheDocument()
+    expect(screen.getByText('৮–৯ বছর')).toBeInTheDocument()
   })
 
 })

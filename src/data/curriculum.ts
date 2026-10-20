@@ -1,4 +1,7 @@
+export type AgeBand = '8-9' | '10-11' | '12+'
+
 export type Lesson = {
+  ageBand: AgeBand
   id: string
   title: string
   subtitle: string
@@ -27,14 +30,14 @@ export const learningPaths: LearningPath[] = [
     color: 'blue',
     progress: 20,
     lessons: [
-      { id: 'place-value', title: 'সংখ্যার স্থানীয় মান', subtitle: 'একক, দশক ও শতক', duration: '৬ মিনিট', status: 'available', kind: 'lesson', objective: 'সংখ্যার প্রতিটি অঙ্কের স্থানীয় মান বুঝতে পারা।' },
-      { id: 'number-line', title: 'সংখ্যারেখায় সংখ্যা', subtitle: 'সংখ্যার অবস্থান ও দূরত্ব', duration: '৮ মিনিট', status: 'available', kind: 'visual', objective: 'সংখ্যারেখায় সংখ্যা সাজানো ও দূরত্ব বোঝা।' },
-      { id: 'operations', title: 'যোগ, বিয়োগ, গুণ ও ভাগ', subtitle: 'চারটি মৌলিক প্রক্রিয়া', duration: '১০ মিনিট', status: 'available', kind: 'practice', objective: 'দৈনন্দিন সমস্যায় মৌলিক গাণিতিক প্রক্রিয়া প্রয়োগ করা।' },
-      { id: 'factors-multiples', title: 'গুণনীয়ক ও গুণিতক', subtitle: 'সংখ্যার গুণের সম্পর্ক', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'গুণনীয়ক ও গুণিতক আলাদা করতে এবং ভাগ দিয়ে যাচাই করতে পারা।' },
-      { id: 'negative-numbers', title: 'ধনাত্মক ও ঋণাত্মক সংখ্যা', subtitle: 'শূন্যের দুই পাশ', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'সংখ্যারেখায় ধনাত্মক, ঋণাত্মক ও শূন্যের অবস্থান বোঝা।' },
-      { id: 'order-of-operations', title: 'হিসাবের সঠিক ক্রম', subtitle: 'বন্ধনী, গুণ-ভাগ, যোগ-বিয়োগ', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'একাধিক প্রক্রিয়া থাকলে সঠিক ক্রমে হিসাব করা।' },
-      { id: 'hcf-lcm', title: 'গ.সা.গু. ও ল.সা.গু.', subtitle: 'সাধারণ গুণনীয়ক ও গুণিতক', duration: '৯ মিনিট', status: 'available', kind: 'lesson', objective: 'দুটি সংখ্যার গ.সা.গু. ও ল.সা.গু. নির্ণয় করা।' },
-      { id: 'averages', title: 'গড় নির্ণয়', subtitle: 'মোট যোগফল থেকে গড়', duration: '৭ মিনিট', status: 'available', kind: 'practice', objective: 'কয়েকটি মানের গড় বের করতে এবং তার অর্থ বুঝতে পারা।' },
+      { id: 'place-value', ageBand: '8-9', title: 'সংখ্যার স্থানীয় মান', subtitle: 'কোন ঘরে আছে, কত মান', duration: '৬ মিনিট', status: 'available', kind: 'lesson', objective: 'অঙ্ক কোন ঘরে আছে, তা দেখে তার মান বুঝি।' },
+      { id: 'number-line', ageBand: '8-9', title: 'সংখ্যারেখায় সংখ্যা', subtitle: 'সংখ্যার পথে সামনে-পেছনে', duration: '৮ মিনিট', status: 'available', kind: 'visual', objective: 'সংখ্যার পথে সামনে বা পেছনে কত ধাপ, তা বুঝি।' },
+      { id: 'operations', ageBand: '8-9', title: 'যোগ, বিয়োগ, গুণ ও ভাগ', subtitle: 'এক করা, বাকি, দল ও ভাগ', duration: '১০ মিনিট', status: 'available', kind: 'practice', objective: 'জিনিস যোগ, বিয়োগ, গুণ ও ভাগ করে হিসাব করি।' },
+      { id: 'factors-multiples', ageBand: '10-11', title: 'গুণনীয়ক ও গুণিতক', subtitle: 'ভাগ করে আর গুণ করে চিনি', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'ভাগ আর গুণ দিয়ে সংখ্যার সম্পর্ক খুঁজি।' },
+      { id: 'negative-numbers', ageBand: '12+', title: 'ধনাত্মক ও ঋণাত্মক সংখ্যা', subtitle: 'শূন্যের নিচে ও ওপরে', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'শূন্যের নিচে ও ওপরে থাকা সংখ্যা বুঝি।' },
+      { id: 'order-of-operations', ageBand: '12+', title: 'হিসাবের সঠিক ক্রম', subtitle: 'কোন কাজ আগে করব?', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'একাধিক হিসাব থাকলে কোন কাজ আগে করব, তা শিখি।' },
+      { id: 'hcf-lcm', ageBand: '12+', title: 'গ.সা.গু. ও ল.সা.গু.', subtitle: 'দুই সংখ্যার মধ্যে মিল খুঁজি', duration: '৯ মিনিট', status: 'available', kind: 'lesson', objective: 'দুটি সংখ্যাকে একসঙ্গে ভাগ করতে পারে এমন সংখ্যা খুঁজি।' },
+      { id: 'averages', ageBand: '10-11', title: 'গড় নির্ণয়', subtitle: 'সমান ভাগ করলে কত হয়?', duration: '৭ মিনিট', status: 'available', kind: 'practice', objective: 'সবকিছু সমান ভাগ করলে কত হয়, তা বের করি।' },
     ],
   },
   {
@@ -45,15 +48,15 @@ export const learningPaths: LearningPath[] = [
     color: 'purple',
     progress: 0,
     lessons: [
-      { id: 'fraction-basics', title: 'ভগ্নাংশের শুরু', subtitle: 'লব, হর ও সমান অংশ', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'ভগ্নাংশের লব ও হর এবং সমান অংশের ধারণা বোঝা।' },
-      { id: 'equivalent-fractions', title: 'সমতুল্য ভগ্নাংশ', subtitle: 'একই মান, ভিন্ন রূপ', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'সমতুল্য ভগ্নাংশ শনাক্ত করা এবং তৈরি করা।' },
-      { id: 'fraction-practice', title: 'ভগ্নাংশ অনুশীলন', subtitle: 'শিখে নিজে করি', duration: '৫ মিনিট', status: 'available', kind: 'practice', objective: 'ভগ্নাংশের ধারণা প্রশ্নের মাধ্যমে যাচাই করা।' },
-      { id: 'decimals', title: 'দশমিক সংখ্যা', subtitle: 'ভগ্নাংশ থেকে দশমিক', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'ভগ্নাংশ ও দশমিকের সম্পর্ক বোঝা।' },
-      { id: 'percentages', title: 'শতকরা', subtitle: '১০০-এর মধ্যে কত?', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'শতকরা হিসাব করা ও বাস্তব জীবনে প্রয়োগ করা।' },
-      { id: 'fraction-addition', title: 'ভগ্নাংশের যোগ ও বিয়োগ', subtitle: 'সমান হর ও ভিন্ন হর', duration: '১০ মিনিট', status: 'available', kind: 'visual', objective: 'সমান হর ও ভিন্ন হরের ভগ্নাংশ যোগ-বিয়োগ করতে পারা।' },
-      { id: 'decimal-operations', title: 'দশমিকের যোগ ও বিয়োগ', subtitle: 'দশমিক বিন্দু মিলিয়ে হিসাব', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'দশমিক ঘর ঠিক রেখে যোগ ও বিয়োগ করতে পারা।' },
-      { id: 'fraction-multiply-divide', title: 'ভগ্নাংশের গুণ ও ভাগ', subtitle: 'ভগ্নাংশের সঙ্গে ভগ্নাংশ', duration: '৯ মিনিট', status: 'available', kind: 'visual', objective: 'ভগ্নাংশ গুণ ও ভাগের নিয়ম উদাহরণসহ প্রয়োগ করা।' },
-      { id: 'rounding-decimals', title: 'দশমিক পূর্ণীকরণ ও অনুমান', subtitle: 'নিকটতম দশম ও শতক', duration: '৭ মিনিট', status: 'available', kind: 'practice', objective: 'দশমিককে নির্দিষ্ট ঘর পর্যন্ত পূর্ণ করতে এবং হিসাবের মান অনুমান করতে পারা।' },
+      { id: 'fraction-basics', ageBand: '8-9', title: 'ভগ্নাংশের শুরু', subtitle: 'সমান ভাগের ছোট অংশ', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'পুরো জিনিসের সমান ভাগের অংশ ভগ্নাংশে লিখি।' },
+      { id: 'equivalent-fractions', ageBand: '10-11', title: 'সমতুল্য ভগ্নাংশ', subtitle: 'একই পরিমাণ, আলাদা রূপ', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'দেখতে আলাদা ভগ্নাংশের মান একই কি না বুঝি।' },
+      { id: 'fraction-practice', ageBand: '8-9', title: 'ভগ্নাংশ অনুশীলন', subtitle: 'ছবি দেখে নিজে করি', duration: '৫ মিনিট', status: 'available', kind: 'practice', objective: 'ছবি আর ছোট প্রশ্ন দিয়ে ভগ্নাংশ বুঝি।' },
+      { id: 'decimals', ageBand: '10-11', title: 'দশমিক সংখ্যা', subtitle: 'টাকা-পয়সা দিয়ে বুঝি', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'দশমিক সংখ্যা দিয়ে ছোট অংশও দেখাই।' },
+      { id: 'percentages', ageBand: '10-11', title: 'শতকরা', subtitle: '১০০টির মধ্যে কতটি?', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'প্রতি ১০০-তে কত অংশ, তা বের করি।' },
+      { id: 'fraction-addition', ageBand: '10-11', title: 'ভগ্নাংশের যোগ ও বিয়োগ', subtitle: 'একই আকারের অংশ যোগ করি', duration: '১০ মিনিট', status: 'available', kind: 'visual', objective: 'একই আকারের ভগ্নাংশ যোগ ও বিয়োগ করি।' },
+      { id: 'decimal-operations', ageBand: '10-11', title: 'দশমিকের যোগ ও বিয়োগ', subtitle: 'দশমিক মিলিয়ে হিসাব', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'দশমিক বিন্দু মিলিয়ে যোগ ও বিয়োগ করি।' },
+      { id: 'fraction-multiply-divide', ageBand: '12+', title: 'ভগ্নাংশের গুণ ও ভাগ', subtitle: 'অংশের গুণ ও ভাগ', duration: '৯ মিনিট', status: 'available', kind: 'visual', objective: 'ভগ্নাংশের গুণ ও ভাগ ধাপে ধাপে করি।' },
+      { id: 'rounding-decimals', ageBand: '12+', title: 'দশমিক পূর্ণীকরণ ও অনুমান', subtitle: 'কাছাকাছি মানে লিখি', duration: '৭ মিনিট', status: 'available', kind: 'practice', objective: 'দশমিক সংখ্যাকে কাছাকাছি মানে লিখি।' },
     ],
   },
   {
@@ -64,11 +67,11 @@ export const learningPaths: LearningPath[] = [
     color: 'orange',
     progress: 0,
     lessons: [
-      { id: 'ratio', title: 'অনুপাতের ধারণা', subtitle: 'দুটি পরিমাণের তুলনা', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'অনুপাত দিয়ে দুটি পরিমাণ তুলনা করা।' },
-      { id: 'variables', title: 'চলক ও রাশি', subtitle: 'x আসলে কী?', duration: '৯ মিনিট', status: 'available', kind: 'visual', objective: 'চলক ও বীজগাণিতিক রাশির অর্থ বোঝা।' },
-      { id: 'linear-equations', title: 'সহজ সমীকরণ', subtitle: 'সমতার দুই পাশ', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'এক ধাপের রৈখিক সমীকরণ সমাধান করা।' },
-      { id: 'proportion', title: 'সমানুপাত ও একক দর', subtitle: 'একটির দাম থেকে অনেকগুলোর দাম', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'একক মান ও সমানুপাত ব্যবহার করে অজানা পরিমাণ বের করা।' },
-      { id: 'two-step-equations', title: 'দুই ধাপের সমীকরণ', subtitle: 'অজানাকে একা করি', duration: '৯ মিনিট', status: 'available', kind: 'lesson', objective: 'দুই ধাপে বিপরীত গাণিতিক প্রক্রিয়া ব্যবহার করে সমীকরণ সমাধান করা।' },
+      { id: 'ratio', ageBand: '12+', title: 'অনুপাতের ধারণা', subtitle: 'দুটি পরিমাণের তুলনা', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'দুটি পরিমাণের তুলনা অনুপাত দিয়ে দেখাই।' },
+      { id: 'variables', ageBand: '12+', title: 'চলক ও রাশি', subtitle: 'খালি বাক্সের বদলে x', duration: '৯ মিনিট', status: 'available', kind: 'visual', objective: 'অজানা সংখ্যার জায়গায় অক্ষর ব্যবহার করি।' },
+      { id: 'linear-equations', ageBand: '12+', title: 'সহজ সমীকরণ', subtitle: 'অজানা সংখ্যা খুঁজে পাই', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'সমীকরণ থেকে অজানা সংখ্যা খুঁজে পাই।' },
+      { id: 'proportion', ageBand: '12+', title: 'সমানুপাত ও একক দর', subtitle: 'একটির দাম থেকে মোট দাম', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'একটি জিনিসের দাম থেকে কয়েকটির দাম বের করি।' },
+      { id: 'two-step-equations', ageBand: '12+', title: 'দুই ধাপের সমীকরণ', subtitle: 'দুই ধাপে x খুঁজি', duration: '৯ মিনিট', status: 'available', kind: 'lesson', objective: 'দুটি ধাপে অজানা সংখ্যা খুঁজে পাই।' },
     ],
   },
   {
@@ -79,11 +82,11 @@ export const learningPaths: LearningPath[] = [
     color: 'green',
     progress: 0,
     lessons: [
-      { id: 'shapes', title: 'আকার ও বৈশিষ্ট্য', subtitle: 'ত্রিভুজ, বর্গ ও বৃত্ত', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'মৌলিক জ্যামিতিক আকৃতি শনাক্ত করা।' },
-      { id: 'perimeter-area', title: 'পরিসীমা ও ক্ষেত্রফল', subtitle: 'সীমানা আর ভেতরের জায়গা', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'পরিসীমা ও ক্ষেত্রফলের পার্থক্য এবং হিসাব বোঝা।' },
-      { id: 'angles', title: 'কোণ ও ডিগ্রি', subtitle: 'সূক্ষ্ম, সমকোণ ও স্থূলকোণ', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'কোণ পরিমাপ ও কোণের ধরন শনাক্ত করতে পারা।' },
-      { id: 'unit-conversion', title: 'একক রূপান্তর', subtitle: 'মিটার, সেন্টিমিটার ও কিলোমিটার', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'দৈর্ঘ্যের এককগুলোর সম্পর্ক ব্যবহার করে একক রূপান্তর করা।' },
-      { id: 'triangles', title: 'ত্রিভুজের ধরন ও কোণ', subtitle: 'বাহু ও কোণ দিয়ে চিনি', duration: '৮ মিনিট', status: 'available', kind: 'visual', objective: 'বাহু ও কোণের ভিত্তিতে ত্রিভুজের ধরন শনাক্ত করা।' },
+      { id: 'shapes', ageBand: '8-9', title: 'আকার ও বৈশিষ্ট্য', subtitle: 'চারপাশের আকার চিনে নিই', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'চারপাশের জিনিসের আকার ও বাহু চিনে নিই।' },
+      { id: 'perimeter-area', ageBand: '10-11', title: 'পরিসীমা ও ক্ষেত্রফল', subtitle: 'চারপাশ আর ভেতরের জায়গা', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'আকারের চারপাশ ও ভেতরের জায়গার হিসাব করি।' },
+      { id: 'angles', ageBand: '10-11', title: 'কোণ ও ডিগ্রি', subtitle: 'কোণ কতটা খোলা?', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'কোণ কতটা খোলা, তা বুঝি ও মাপি।' },
+      { id: 'unit-conversion', ageBand: '8-9', title: 'একক রূপান্তর', subtitle: 'মিটার আর সেন্টিমিটার', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'মিটার ও সেন্টিমিটারের মধ্যে বদল করি।' },
+      { id: 'triangles', ageBand: '12+', title: 'ত্রিভুজের ধরন ও কোণ', subtitle: 'তিন বাহু, তিন কোণ', duration: '৮ মিনিট', status: 'available', kind: 'visual', objective: 'ত্রিভুজের বাহু ও কোণ দেখে তার বৈশিষ্ট্য বুঝি।' },
     ],
   },
 ]
