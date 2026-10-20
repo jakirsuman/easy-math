@@ -36,8 +36,9 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'অনুশীলন' })[0])
     fireEvent.click(screen.getByRole('button', { name: /দৈনিক চ্যালেঞ্জ/ }))
     expect(screen.getByText(/1 \/ 5টি প্রশ্ন/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /মিশ্র অনুশীলন/ }))
     fireEvent.change(screen.getByLabelText('বিষয় বেছে নাও'), { target: { value: 'decimals' } })
-    expect(screen.getByText(/৩\.৪ \+ ০\.৬ = কত\?/)).toBeInTheDocument()
+    expect(screen.getByText(/০\.৫-এর ভগ্নাংশ রূপ/)).toBeInTheDocument()
     expect(screen.getByText(/1 \/ 2টি প্রশ্ন/)).toBeInTheDocument()
   })
 
