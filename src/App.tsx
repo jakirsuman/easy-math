@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowLeft, ArrowRight, BookOpen, Check, ChevronRight, CircleHelp,
-  Clock3, Flame, GraduationCap, Home, Lightbulb, LockKeyhole, Play,
+  Clock3, Flame, GraduationCap, Home, Lightbulb, LockKeyhole,
   RotateCcw, Sparkles, Target, Trophy, X, ChartNoAxesColumnIncreasing,
 } from 'lucide-react'
 import { learningPaths, starterQuestions } from './data/curriculum'
