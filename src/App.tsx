@@ -170,7 +170,7 @@ function HomeView({ progress, completedCount, onNavigate, onOpenLesson }: { prog
       <section className="section-block">
         <div className="section-heading"><div><span className="eyebrow">তোমার পরিকল্পনা</span><h2>শেখার পথ</h2></div><button className="text-link" onClick={() => onNavigate('learn')}>সব দেখো <ArrowRight size={16} /></button></div>
         <div className="path-grid">
-          {learningPaths.map((path) => <PathCard key={path.id} path={path} completed={completed} onClick={() => onNavigate('learn')} />)}
+          {learningPaths.map((path) => <PathCard key={path.id} path={path} completed={progress.completedLessons} onClick={() => onNavigate('learn')} />)}
         </div>
       </section>
 
