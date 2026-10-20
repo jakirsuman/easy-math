@@ -67,7 +67,7 @@ export const expandedQuestions = [
   { id: 'extra-al30', topic: 'algebra', prompt: '৪y − ৮ = ১২ হলে y কত?', options: ['১', '৫', '৮'], answer: '৫', explanation: 'দুই পাশে ৮ যোগ করলে ৪y = ২০; ৪ দিয়ে ভাগ করলে y = ৫।' },
   { id: 'extra-al31', topic: 'algebra', prompt: '৩a + ২a সরল করলে কী হবে?', options: ['৫a', '৫a²', '৬a'], answer: '৫a', explanation: 'একই চলক a-এর সহগ ৩ ও ২ যোগ করি: ৩a + ২a = ৫a।' },
   { id: 'extra-al32', topic: 'algebra', prompt: 'x = ৩ হলে ২x + ৫-এর মান কত?', options: ['৮', '১১', '১৩'], answer: '১১', explanation: 'x-এর জায়গায় ৩ বসাই: ২ × ৩ + ৫ = ৬ + ৫ = ১১।' },
-  { id: 'extra-al33', topic: 'algebra', prompt: 'x + y = ১০ এবং x = ৪ হলে y কত?', options: ['৪', '৬', '১৪'], answer: '৬', explanation: 'y = ১০ − ৪ = ৬।' },
+  { id: 'extra-al33', topic: 'algebra', prompt: 'x + y = ১০ এবং x = ৪ হলে y কত?', options: ['৪', '৬', '১৪'], answer: '৬', explanation: 'x + y = ১০ এবং x = ৪, তাই y = ১০ − ৪ = ৬।' },
 
   { id: 'extra-g26', topic: 'geometry', prompt: 'ত্রিভুজের দুটি কোণ ৫০° ও ৬০°। তৃতীয় কোণ কত?', options: ['৬০°', '৭০°', '৮০°'], answer: '৭০°', explanation: 'ত্রিভুজের তিন কোণের যোগ ১৮০°; ১৮০° − ৫০° − ৬০° = ৭০°।' },
   { id: 'extra-g27', topic: 'geometry', prompt: 'একটি বর্গের বাহু ৬ সেমি হলে পরিসীমা কত?', options: ['১২ সেমি', '২৪ সেমি', '৩৬ সেমি'], answer: '২৪ সেমি', explanation: 'বর্গের চারটি সমান বাহু, তাই পরিসীমা = ৪ × ৬ = ২৪ সেমি।' },
