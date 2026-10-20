@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowLeft, ArrowRight, BookOpen, Check, ChevronRight, CircleHelp,
   Clock3, Flame, GraduationCap, Home, Lightbulb, LockKeyhole, Play,
@@ -182,7 +182,7 @@ function HomeView({ progress, completedCount, onNavigate, onOpenLesson }: { prog
   )
 }
 
-function StatCard({ icon, label, value, detail, tone }: { icon: React.ReactNode; label: string; value: string; detail: string; tone: string }) {
+function StatCard({ icon, label, value, detail, tone }: { icon: ReactNode; label: string; value: string; detail: string; tone: string }) {
   return <article className="stat-card"><div className={`stat-icon tone-${tone}`}>{icon}</div><div className="stat-label">{label}</div><strong className="stat-value">{value}</strong><span className="stat-detail">{detail}</span></article>
 }
 
@@ -206,7 +206,6 @@ function LessonView({ lessonId, path, completed, onBack, onComplete, onPractice 
   const [showHint, setShowHint] = useState(false)
   const [checked, setChecked] = useState(false)
   const lesson = path.lessons.find((item) => item.id === lessonId)
-  const isFractionLesson = lessonId === 'fraction-basics' || lessonId === 'equivalent-fractions'
   const isEquivalent = lessonId === 'equivalent-fractions'
   const title = lesson?.title ?? 'ভগ্নাংশের শুরু'
   return <div className="page-content lesson-page">
@@ -273,7 +272,7 @@ function LabView() {
   const [whole, setWhole] = useState(8)
   const [showExplanation, setShowExplanation] = useState(false)
   const percent = Math.round(value / whole * 100)
-  return <div className="page-content"><div className="page-title-row"><div><div className="eyebrow">দেখে শেখার জায়গা</div><h1>ইন্টার‍্যাক্টিভ ম্যাথ ল্যাব</h1><p>সংখ্যা বদলাও, কী ঘটে তা দেখো, তারপর নিজের ভাষায় ব্যাখ্যা করো।</p></div><div className="title-stamp"><Sparkles size={23} /></div></div><div className="lab-feature-card"><div className="lab-feature-copy"><span className="hero-kicker"><Sparkles size={14} /> হাতে-কলমে গণিত</span><h2>ভগ্নাংশ ও শতকরা</h2><p>একই পরিমাণকে ভগ্নাংশ, দশমিক এবং শতকরা হিসেবে দেখো।</p><div className="lab-controls"><label>নেওয়া অংশ <strong>{value}</strong><input type="range" min="1" max={whole} value={value} onChange={(e) => { setValue(Number(e.target.value)); setShowExplanation(false) }} /></label><label>মোট অংশ <strong>{whole}</strong><input type="range" min="2" max="12" value={whole} onChange={(e) => { const next = Number(e.target.value); setWhole(next); setValue((v) => Math.min(v, next)); setShowExplanation(false) }} /></label></div></div><div className="lab-visual"><div className="lab-ring" style={{ background: `conic-gradient(#6d5ce8 0% ${percent}%, #eeebff ${percent}% 100%)` }}><div><strong>{percent}%</strong><span>শতকরা</span></div></div><div className="lab-equivalents"><div><span>ভগ্নাংশ</span><strong>{value}/{whole}</strong></div><div><span>দশমিক (প্রায়)</span><strong>{(value / whole).toFixed(2)}</strong></div><div><span>শতকরা</span><strong>{percent}%</strong></div></div></div></div><button className="explain-toggle" onClick={() => setShowExplanation((show) => !show)}><Lightbulb size={18} /> {showExplanation ? 'ব্যাখ্যা লুকাও' : 'এটি কীভাবে কাজ করে?'} <ChevronRight size={17} className={showExplanation ? 'rotate-chevron' : ''} /></button>{showExplanation && <div className="explanation-card"><h3>একই মানের তিনটি রূপ</h3><p>{value}/{whole} মানে {whole}টি সমান অংশের মধ্যে {value}টি অংশ। দশমিক পেতে {value} ÷ {whole} হিসাব করি। শতকরা পেতে সেই মানকে ১০০ দিয়ে গুণ করি। এখানে শতকরা মানটি নিকটতম পূর্ণ সংখ্যায় দেখানো হয়েছে।</p></div>}<div className="lab-coming-grid"><article><div className="coming-icon coming-blue">x²</div><strong>বীজগণিত ব্যালেন্স</strong><p>সমীকরণের দুই পাশ কীভাবে সমান থাকে, তা দেখো।</p><span>শিগগিরই আসছে</span></article><article><div className="coming-icon coming-green">△</div><strong>জ্যামিতি এক্সপ্লোরার</strong><p>আকারের মাপ বদলে ক্ষেত্রফল ও পরিসীমা বোঝো।</p><span>শিগগিরই আসছে</span></article></div></div>
+  return <div className="page-content"><div className="page-title-row"><div><div className="eyebrow">দেখে শেখার জায়গা</div><h1>ইন্টার‍্যাক্টিভ ম্যাথ ল্যাব</h1><p>সংখ্যা বদলাও, কী ঘটে তা দেখো, তারপর নিজের ভাষায় ব্যাখ্যা করো।</p></div><div className="title-stamp"><Sparkles size={23} /></div></div><div className="lab-feature-card"><div className="lab-feature-copy"><span className="hero-kicker"><Sparkles size={14} /> হাতে-কলমে গণিত</span><h2>ভগ্নাংশ ও শতকরা</h2><p>একই পরিমাণকে ভগ্নাংশ, দশমিক এবং শতকরা হিসেবে দেখো।</p><div className="lab-controls"><label>নেওয়া অংশ <strong>{value}</strong><input type="range" min="1" max={whole} value={value} onChange={(e) => { setValue(Number(e.target.value)); setShowExplanation(false) }} /></label><label>মোট অংশ <strong>{whole}</strong><input type="range" min="2" max="12" value={whole} onChange={(e) => { const next = Number(e.target.value); setWhole(next); setValue((v) => Math.min(v, next)); setShowExplanation(false) }} /></label></div></div><div className="lab-visual"><div className="lab-ring" style={{ background: `conic-gradient(#6d5ce8 0% ${percent}%, #eeebff ${percent}% 100%)` }}><div><strong>{percent}%</strong><span>শতকরা</span></div></div><div className="lab-equivalents"><div><span>ভগ্নাংশ</span><strong>{value}/{whole}</strong></div><div><span>দশমিক (প্রায়)</span><strong>{(value / whole).toFixed(2)}</strong></div><div><span>শতকরা</span><strong>{percent}%</strong></div></div></div></div><FractionEquivalenceCheck /><button className="explain-toggle" onClick={() => setShowExplanation((show) => !show)}><Lightbulb size={18} /> {showExplanation ? 'ব্যাখ্যা লুকাও' : 'এটি কীভাবে কাজ করে?'} <ChevronRight size={17} className={showExplanation ? 'rotate-chevron' : ''} /></button>{showExplanation && <div className="explanation-card"><h3>একই মানের তিনটি রূপ</h3><p>{value}/{whole} মানে {whole}টি সমান অংশের মধ্যে {value}টি অংশ। দশমিক পেতে {value} ÷ {whole} হিসাব করি। শতকরা পেতে সেই মানকে ১০০ দিয়ে গুণ করি। এখানে শতকরা মানটি নিকটতম পূর্ণ সংখ্যায় দেখানো হয়েছে।</p></div>}<div className="lab-coming-grid"><article><div className="coming-icon coming-blue">x²</div><strong>বীজগণিত ব্যালেন্স</strong><p>সমীকরণের দুই পাশ কীভাবে সমান থাকে, তা দেখো।</p><span>শিগগিরই আসছে</span></article><article><div className="coming-icon coming-green">△</div><strong>জ্যামিতি এক্সপ্লোরার</strong><p>আকারের মাপ বদলে ক্ষেত্রফল ও পরিসীমা বোঝো।</p><span>শিগগিরই আসছে</span></article></div></div>
 }
 
 function ProgressView({ progress, completedCount, totalLessons, onReset }: { progress: StoredProgress; completedCount: number; totalLessons: number; onReset: () => void }) {
@@ -283,3 +282,18 @@ function ProgressView({ progress, completedCount, totalLessons, onReset }: { pro
 }
 
 export default App
+
+
+function FractionEquivalenceCheck() {
+  const [answer, setAnswer] = useState('')
+  const [checked, setChecked] = useState(false)
+  const correct = areEquivalentFractions(answer, 1, 2)
+  return <section className="equivalence-check">
+    <div><strong>নিজে যাচাই করো</strong><p>১/২-এর সমতুল্য একটি ভগ্নাংশ লেখো। যেমন: ২/৪।</p></div>
+    <form onSubmit={(event) => { event.preventDefault(); setChecked(true) }}>
+      <input aria-label="সমতুল্য ভগ্নাংশ লেখো" value={answer} onChange={(event) => { setAnswer(event.target.value); setChecked(false) }} placeholder="যেমন ৩/৬" />
+      <button className="button-primary" type="submit" disabled={!answer.trim()}>যাচাই</button>
+    </form>
+    {checked && <p className={correct ? 'equivalence-correct' : 'equivalence-incorrect'}>{correct ? 'সঠিক! এই ভগ্নাংশটির মান ১/২-এর সমান।' : 'এখনও মেলেনি। লব ও হরকে একই অশূন্য সংখ্যা দিয়ে গুণ করে দেখো।'}</p>}
+  </section>
+}
