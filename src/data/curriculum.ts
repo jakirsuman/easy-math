@@ -77,7 +77,7 @@ export const learningPaths: LearningPath[] = [
 export const starterQuestions = [
   { id: 'q1', topic: 'fractions', prompt: 'একটি পিৎজার ২ সমান অংশের ১ অংশকে কীভাবে লিখবে?', options: ['১/২', '১/৩', '২/১'], answer: '১/২', explanation: 'মোট ২টি সমান অংশের মধ্যে ১টি অংশ নেওয়া হয়েছে। তাই ভগ্নাংশ ১/২।' },
   { id: 'q2', topic: 'fractions', prompt: 'কোন ভগ্নাংশটি ১/২-এর সমান?', options: ['২/৩', '২/৪', '৩/৪'], answer: '২/৪', explanation: 'লব ও হর দুটিকেই ২ দিয়ে গুণ করলে ১/২ = ২/৪ হয়।' },
-  { id: 'q3', topic: 'fractions', prompt: '৪টি সমান অংশের ৩টি অংশকে কীভাবে লিখবে?', options: ['৪/৩', '৩/৪', '১/৪'], answer: '৩/৪', explanation: '৩টি অংশ নেওয়া হয়েছে এবং মোট অংশ ৪টি। তাই ৩/৪।' },,
+  { id: 'q3', topic: 'fractions', prompt: '৪টি সমান অংশের ৩টি অংশকে কীভাবে লিখবে?', options: ['৪/৩', '৩/৪', '১/৪'], answer: '৩/৪', explanation: '৩টি অংশ নেওয়া হয়েছে এবং মোট অংশ ৪টি। তাই ৩/৪।' },
 
   { id: 'q4', topic: 'arithmetic', prompt: '২৭ + ১৫ = কত?', options: ['৩২', '৪২', '৪১'], answer: '৪২', explanation: '২৭ + ১০ = ৩৭, এরপর আরও ৫ যোগ করলে ৪২ হয়।' },
   { id: 'q5', topic: 'arithmetic', prompt: '৬ × ৭ = কত?', options: ['৪২', '৪৮', '৩৬'], answer: '৪২', explanation: '৬-এর ৭টি দল মানে ৬ + ৬ + ৬ + ৬ + ৬ + ৬ + ৬ = ৪২।' },
