@@ -4,7 +4,8 @@ import {
   Clock3, Flame, GraduationCap, Home, Lightbulb, LockKeyhole,
   RotateCcw, Sparkles, Target, Trophy, X, ChartNoAxesColumnIncreasing,
 } from 'lucide-react'
-import { learningPaths, starterQuestions } from './data/curriculum'
+import { learningPaths } from './data/curriculum'
+import { practiceQuestions } from './data/expandedQuestions'
 import type { LearningPath } from './data/curriculum'
 import { areEquivalentFractions } from './math/fractions'
 import { lessonContent } from './data/lessonContent'
@@ -276,7 +277,7 @@ function PracticeView({ onRecord, onFinish }: { onRecord: (correct: boolean) => 
   const [finished, setFinished] = useState(false)
 
   const questions = useMemo(() => {
-    const pool = starterQuestions.filter((item) => topic === 'all' || item.topic === topic)
+    const pool = practiceQuestions.filter((item) => topic === 'all' || item.topic === topic)
     if (!pool.length) return []
     if (mode === 'daily') {
       const day = new Date().toLocaleDateString('en-CA')
@@ -359,7 +360,7 @@ function PracticeView({ onRecord, onFinish }: { onRecord: (correct: boolean) => 
     <div className="practice-header"><div><div className="eyebrow">ছোট্ট চ্যালেঞ্জ</div><h1>এবার নিজে করো</h1><p>প্রতিবার নতুন প্রশ্ন অনুশীলন করো। ভুল হলে ব্যাখ্যা দেখে শিখে নাও।</p></div><div className="quiz-score"><Sparkles size={17} /><strong>{score} পয়েন্ট</strong></div></div>
     <div className="practice-modes" aria-label="অনুশীলনের ধরন">
       <button className={mode === 'mixed' ? 'practice-mode practice-mode-active' : 'practice-mode'} onClick={() => changeSession('mixed')}><Target size={17} /><span><strong>মিশ্র অনুশীলন</strong><small>১০টি পর্যন্ত প্রশ্ন</small></span></button>
-      <button className={mode === 'daily' ? 'practice-mode practice-mode-active' : 'practice-mode'} onClick={() => changeSession('daily')}><Flame size={17} /><span><strong>দৈনিক চ্যালেঞ্জ</strong><small>প্রতিদিন একই ৫টি প্রশ্ন</small></span></button>
+      <button className={mode === 'daily' ? 'practice-mode practice-mode-active' : 'practice-mode'} onClick={() => changeSession('daily')}><Flame size={17} /><span><strong>দৈনিক চ্যালেঞ্জ</strong><small>আজকের জন্য নির্দিষ্ট ৫টি প্রশ্ন</small></span></button>
     </div>
     <label className="topic-filter">বিষয় বেছে নাও
       <select value={topic} onChange={(event) => changeTopic(event.target.value)}>
@@ -391,7 +392,53 @@ function LabView() {
   const [whole, setWhole] = useState(8)
   const [showExplanation, setShowExplanation] = useState(false)
   const percent = Math.round(value / whole * 100)
-  return <div className="page-content"><div className="page-title-row"><div><div className="eyebrow">দেখে শেখার জায়গা</div><h1>ইন্টার‍্যাক্টিভ ম্যাথ ল্যাব</h1><p>সংখ্যা বদলাও, কী ঘটে তা দেখো, তারপর নিজের ভাষায় ব্যাখ্যা করো।</p></div><div className="title-stamp"><Sparkles size={23} /></div></div><div className="lab-feature-card"><div className="lab-feature-copy"><span className="hero-kicker"><Sparkles size={14} /> হাতে-কলমে গণিত</span><h2>ভগ্নাংশ ও শতকরা</h2><p>একই পরিমাণকে ভগ্নাংশ, দশমিক এবং শতকরা হিসেবে দেখো।</p><div className="lab-controls"><label>নেওয়া অংশ <strong>{value}</strong><input type="range" min="1" max={whole} value={value} onChange={(e) => { setValue(Number(e.target.value)); setShowExplanation(false) }} /></label><label>মোট অংশ <strong>{whole}</strong><input type="range" min="2" max="12" value={whole} onChange={(e) => { const next = Number(e.target.value); setWhole(next); setValue((v) => Math.min(v, next)); setShowExplanation(false) }} /></label></div></div><div className="lab-visual"><div className="lab-ring" style={{ background: `conic-gradient(#6d5ce8 0% ${percent}%, #eeebff ${percent}% 100%)` }}><div><strong>{percent}%</strong><span>শতকরা</span></div></div><div className="lab-equivalents"><div><span>ভগ্নাংশ</span><strong>{value}/{whole}</strong></div><div><span>দশমিক (প্রায়)</span><strong>{(value / whole).toFixed(2)}</strong></div><div><span>শতকরা</span><strong>{percent}%</strong></div></div></div></div><FractionEquivalenceCheck /><button className="explain-toggle" onClick={() => setShowExplanation((show) => !show)}><Lightbulb size={18} /> {showExplanation ? 'ব্যাখ্যা লুকাও' : 'এটি কীভাবে কাজ করে?'} <ChevronRight size={17} className={showExplanation ? 'rotate-chevron' : ''} /></button>{showExplanation && <div className="explanation-card"><h3>একই মানের তিনটি রূপ</h3><p>{value}/{whole} মানে {whole}টি সমান অংশের মধ্যে {value}টি অংশ। দশমিক পেতে {value} ÷ {whole} হিসাব করি। শতকরা পেতে সেই মানকে ১০০ দিয়ে গুণ করি। এখানে শতকরা মানটি নিকটতম পূর্ণ সংখ্যায় দেখানো হয়েছে।</p></div>}<div className="lab-coming-grid"><article><div className="coming-icon coming-blue">x²</div><strong>বীজগণিত ব্যালেন্স</strong><p>সমীকরণের দুই পাশ কীভাবে সমান থাকে, তা দেখো।</p><span>শিগগিরই আসছে</span></article><article><div className="coming-icon coming-green">△</div><strong>জ্যামিতি এক্সপ্লোরার</strong><p>আকারের মাপ বদলে ক্ষেত্রফল ও পরিসীমা বোঝো।</p><span>শিগগিরই আসছে</span></article></div></div>
+  return <div className="page-content"><div className="page-title-row"><div><div className="eyebrow">দেখে শেখার জায়গা</div><h1>ইন্টার‍্যাক্টিভ ম্যাথ ল্যাব</h1><p>সংখ্যা বদলাও, কী ঘটে তা দেখো, তারপর নিজের ভাষায় ব্যাখ্যা করো।</p></div><div className="title-stamp"><Sparkles size={23} /></div></div><div className="lab-feature-card"><div className="lab-feature-copy"><span className="hero-kicker"><Sparkles size={14} /> হাতে-কলমে গণিত</span><h2>ভগ্নাংশ ও শতকরা</h2><p>একই পরিমাণকে ভগ্নাংশ, দশমিক এবং শতকরা হিসেবে দেখো।</p><div className="lab-controls"><label>নেওয়া অংশ <strong>{value}</strong><input type="range" min="1" max={whole} value={value} onChange={(e) => { setValue(Number(e.target.value)); setShowExplanation(false) }} /></label><label>মোট অংশ <strong>{whole}</strong><input type="range" min="2" max="12" value={whole} onChange={(e) => { const next = Number(e.target.value); setWhole(next); setValue((v) => Math.min(v, next)); setShowExplanation(false) }} /></label></div></div><div className="lab-visual"><div className="lab-ring" style={{ background: `conic-gradient(#6d5ce8 0% ${percent}%, #eeebff ${percent}% 100%)` }}><div><strong>{percent}%</strong><span>শতকরা</span></div></div><div className="lab-equivalents"><div><span>ভগ্নাংশ</span><strong>{value}/{whole}</strong></div><div><span>দশমিক (প্রায়)</span><strong>{(value / whole).toFixed(2)}</strong></div><div><span>শতকরা</span><strong>{percent}%</strong></div></div></div></div><FractionEquivalenceCheck /><button className="explain-toggle" onClick={() => setShowExplanation((show) => !show)}><Lightbulb size={18} /> {showExplanation ? 'ব্যাখ্যা লুকাও' : 'এটি কীভাবে কাজ করে?'} <ChevronRight size={17} className={showExplanation ? 'rotate-chevron' : ''} /></button>{showExplanation && <div className="explanation-card"><h3>একই মানের তিনটি রূপ</h3><p>{value}/{whole} মানে {whole}টি সমান অংশের মধ্যে {value}টি অংশ। দশমিক পেতে {value} ÷ {whole} হিসাব করি। শতকরা পেতে সেই মানকে ১০০ দিয়ে গুণ করি। এখানে শতকরা মানটি নিকটতম পূর্ণ সংখ্যায় দেখানো হয়েছে।</p></div>}<div className="lab-model-grid"><AlgebraBalanceModel /><RectangleExplorer /></div></div>
+}
+
+
+function AlgebraBalanceModel() {
+  const [offset, setOffset] = useState(3)
+  const [total, setTotal] = useState(11)
+  const answer = total - offset
+
+  return <article className="lab-model-card">
+    <div className="model-card-heading"><div><span className="visualizer-label">বীজগণিত</span><h3>সমতার দুই পাশ</h3></div><span className="model-mark">x = ?</span></div>
+    <p className="model-intro">একটি অজানা সংখ্যার সঙ্গে কোনো সংখ্যা যোগ করা হয়েছে। দুই পাশ থেকে একই সংখ্যা বিয়োগ করে x-কে একা করো।</p>
+    <div className="balance-equation" aria-live="polite">
+      <div className="balance-side"><span>বাম পাশ</span><strong>x + {offset}</strong></div>
+      <div className="balance-equals" aria-label="সমান">=</div>
+      <div className="balance-side"><span>ডান পাশ</span><strong>{total}</strong></div>
+    </div>
+    <div className="balance-controls">
+      <label>যোগ করা সংখ্যা <strong>{offset}</strong><input aria-label="সমীকরণে যোগ করা সংখ্যা" type="range" min="0" max="10" value={offset} onChange={(event) => setOffset(Number(event.target.value))} /></label>
+      <label>সমীকরণের ডান পাশ <strong>{total}</strong><input aria-label="সমীকরণের ডান পাশ" type="range" min="0" max="20" value={total} onChange={(event) => setTotal(Number(event.target.value))} /></label>
+    </div>
+    <div className="balance-solution" aria-live="polite"><span>দুই পাশ থেকে {offset} বিয়োগ</span><strong>x = {total} − {offset} = {answer}</strong><small>যাচাই: {answer} + {offset} = {total}</small></div>
+    <p className="model-footnote">সমীকরণের এক পাশেই শুধু কাজ করলে ভারসাম্য নষ্ট হয়। সমতা রাখতে দুই পাশেই একই ক্রিয়া করো।</p>
+  </article>
+}
+
+function RectangleExplorer() {
+  const [length, setLength] = useState(8)
+  const [width, setWidth] = useState(4)
+  const perimeter = 2 * (length + width)
+  const area = length * width
+
+  return <article className="lab-model-card">
+    <div className="model-card-heading"><div><span className="visualizer-label">জ্যামিতি</span><h3>আয়তক্ষেত্র এক্সপ্লোরার</h3></div><span className="model-mark">দৈর্ঘ্য × প্রস্থ</span></div>
+    <p className="model-intro">দৈর্ঘ্য ও প্রস্থ বদলে দেখো—সীমানার দৈর্ঘ্য (পরিসীমা) আর ভেতরের জায়গা (ক্ষেত্রফল) কীভাবে বদলায়।</p>
+    <div className="rectangle-stage">
+      <div className="rectangle-shape" role="img" aria-label={`দৈর্ঘ্য ${length} সেমি এবং প্রস্থ ${width} সেমির আয়তক্ষেত্র`} style={{ width: `${Math.min(96, length * 8)}%`, height: `${width * 9 + 18}px` }}>
+        <span>{length} সেমি</span><small>{width} সেমি</small>
+      </div>
+    </div>
+    <div className="balance-controls">
+      <label>দৈর্ঘ্য <strong>{length} সেমি</strong><input aria-label="আয়তক্ষেত্রের দৈর্ঘ্য" type="range" min="2" max="12" value={length} onChange={(event) => setLength(Number(event.target.value))} /></label>
+      <label>প্রস্থ <strong>{width} সেমি</strong><input aria-label="আয়তক্ষেত্রের প্রস্থ" type="range" min="1" max="8" value={width} onChange={(event) => setWidth(Number(event.target.value))} /></label>
+    </div>
+    <div className="geometry-metrics"><div><span>পরিসীমা</span><strong>{perimeter} সেমি</strong><small>২ × (দৈর্ঘ্য + প্রস্থ)</small></div><div><span>ক্ষেত্রফল</span><strong>{area} বর্গ সেমি</strong><small>দৈর্ঘ্য × প্রস্থ</small></div></div>
+    <p className="model-footnote">পরিসীমা হলো চারদিকের মোট দৈর্ঘ্য; ক্ষেত্রফল হলো আয়তক্ষেত্রের ভেতরের জায়গা। একটির একক সেমি, অন্যটির বর্গ সেমি।</p>
+  </article>
 }
 
 function ProgressView({ progress, completedCount, totalLessons, onReset }: { progress: StoredProgress; completedCount: number; totalLessons: number; onReset: () => void }) {
