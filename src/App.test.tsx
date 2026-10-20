@@ -129,4 +129,11 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByText('40 বর্গ সেমি')).toBeInTheDocument()
   })
 
+  it('renders the supplied Sopan wordmark in the app navigation', () => {
+    render(<App />)
+    const wordmark = screen.getByRole('img', { name: 'Sopan wordmark' })
+    expect(wordmark).toHaveAttribute('src', '/sopan-wordmark.svg')
+    expect(screen.getByRole('button', { name: 'সহজ গণিত হোম' })).toBeInTheDocument()
+  })
+
 })
