@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import App from './App'
+import { learningPaths } from './data/curriculum'
+import { lessonContent } from './data/lessonContent'
 
 afterEach(() => cleanup())
 beforeEach(() => localStorage.clear())
@@ -75,6 +77,18 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByRole('button', { name: 'ভগ্নাংশের যোগ ও বিয়োগ খুলুন' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'সমানুপাত ও একক দর খুলুন' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'কোণ ও ডিগ্রি খুলুন' })).toBeInTheDocument()
+  })
+
+
+  it('provides structured Bengali content and a knowledge check for every listed lesson', () => {
+    const lessons = learningPaths.flatMap((path) => path.lessons)
+    expect(lessons.length).toBeGreaterThanOrEqual(18)
+    for (const lesson of lessons) {
+      expect(lessonContent[lesson.id], `Missing content for ${lesson.id}`).toBeDefined()
+      expect(lessonContent[lesson.id].steps.length).toBeGreaterThanOrEqual(3)
+      expect(lessonContent[lesson.id].takeaways.length).toBeGreaterThanOrEqual(3)
+      expect(lessonContent[lesson.id].options).toContain(lessonContent[lesson.id].answer)
+    }
   })
 
 })
