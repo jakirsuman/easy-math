@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { learningPaths } from './data/curriculum'
 import { practiceQuestions } from './data/expandedQuestions'
-import type { LearningPath } from './data/curriculum'
+import type { AgeBand, LearningPath } from './data/curriculum'
 import { areEquivalentFractions } from './math/fractions'
 import { lessonContent } from './data/lessonContent'
 
@@ -31,6 +31,19 @@ function readProgress(): StoredProgress {
     return defaultProgress
   }
 }
+
+const ageBandLabels: Record<AgeBand, string> = {
+  '8-9': '৮–৯ বছর',
+  '10-11': '১০–১১ বছর',
+  '12+': '১২ বছর বা বেশি',
+}
+
+const ageOptions: { id: AgeBand | 'all'; label: string; description: string }[] = [
+  { id: '8-9', label: '৮–৯ বছর', description: 'সংখ্যা, যোগ-বিয়োগ, ভগ্নাংশ আর পরিচিত আকার দিয়ে শুরু করো।' },
+  { id: '10-11', label: '১০–১১ বছর', description: 'দশমিক, শতকরা, গড় আর মাপজোকের মতো নতুন ধারণা শেখো।' },
+  { id: '12+', label: '১২ বছর বা বেশি', description: 'ঋণাত্মক সংখ্যা, ভগ্নাংশের নিয়ম ও বীজগণিতের চ্যালেঞ্জ নাও।' },
+  { id: 'all', label: 'সব বয়সের পাঠ', description: 'সব পাঠ একসঙ্গে দেখো। নিজের স্বাচ্ছন্দ্য অনুযায়ী যেকোনো পাঠ বেছে নিতে পারো।' },
+]
 
 const navItems: { id: View; label: string; icon: typeof Home }[] = [
   { id: 'home', label: 'হোম', icon: Home },
@@ -198,11 +211,23 @@ function PathCard({ path, completed, onClick }: { path: LearningPath; completed:
 
 function LearnView({ completed, onOpenLesson }: { completed: string[]; onOpenLesson: (path: LearningPath, id: string) => void }) {
   const [selected, setSelected] = useState('all')
-  const visiblePaths = selected === 'all' ? learningPaths : learningPaths.filter((path) => path.id === selected)
+  const [selectedAge, setSelectedAge] = useState<AgeBand | 'all'>('8-9')
+  const selectedPaths = selected === 'all' ? learningPaths : learningPaths.filter((path) => path.id === selected)
+  const visiblePaths = selectedPaths
+    .map((path) => ({ ...path, lessons: path.lessons.filter((lesson) => selectedAge === 'all' || lesson.ageBand === selectedAge) }))
+    .filter((path) => path.lessons.length > 0)
+  const ageDescription = ageOptions.find((option) => option.id === selectedAge)?.description
+
   return <div className="page-content">
-    <div className="page-title-row"><div><div className="eyebrow">ধাপে ধাপে শেখা</div><h1>শেখার পথ</h1><p>নিজের গতিতে এগিয়ে যাও। প্রতিটি ছোট দক্ষতাই গুরুত্বপূর্ণ।</p></div><div className="title-stamp"><BookOpen size={23} /></div></div>
-    <div className="filter-row">{[{ id: 'all', label: 'সব বিষয়' }, ...learningPaths.map((path) => ({ id: path.id, label: path.title }))].map((item) => <button key={item.id} className={selected === item.id ? 'filter-chip filter-active' : 'filter-chip'} onClick={() => setSelected(item.id)}>{item.label}</button>)}</div>
-    <div className="learning-path-list">{visiblePaths.map((path) => <section key={path.id} className="learning-path-section"><div className="learning-path-header"><div className={`path-icon path-${path.color}`}>{path.icon}</div><div><h2>{path.title}</h2><p>{path.description}</p></div><span className="path-count">{path.lessons.length}টি পাঠ</span></div><div className="lesson-list">{path.lessons.map((lesson, index) => { const isComplete = completed.includes(lesson.id); const locked = lesson.status === 'coming-soon'; return <article className={`lesson-row ${locked ? 'lesson-locked' : ''}`} key={lesson.id}><div className={`lesson-index ${isComplete ? 'lesson-index-done' : ''}`}>{isComplete ? <Check size={17} /> : locked ? <LockKeyhole size={16} /> : String(index + 1).padStart(2, '0')}</div><div className="lesson-row-copy"><strong>{lesson.title}</strong><span>{lesson.subtitle}</span></div><span className="lesson-duration"><Clock3 size={13} />{lesson.duration}</span>{locked ? <span className="coming-label">শিগগিরই</span> : <button className="lesson-open" onClick={() => onOpenLesson(path, lesson.id)} aria-label={lesson.title + ' খুলুন'}><ChevronRight size={18} /></button>}</article> })}</div></section>)}</div>
+    <div className="page-title-row"><div><div className="eyebrow">ধাপে ধাপে শেখা</div><h1>শেখার পথ</h1><p>ছোট ছোট ধাপে শিখি। না বুঝলে আবার দেখে নিতে পারো।</p></div><div className="title-stamp"><BookOpen size={23} /></div></div>
+    <section className="age-selector" aria-label="বয়স অনুযায়ী পাঠ বেছে নাও">
+      <div className="age-selector-heading"><strong>তোমার বয়স অনুযায়ী পাঠ বেছে নাও</strong><span>সহজ থেকে ধীরে ধীরে কঠিন</span></div>
+      <div className="filter-row age-filter-row">{ageOptions.map((option) => <button key={option.id} type="button" className={selectedAge === option.id ? 'filter-chip filter-active' : 'filter-chip'} aria-pressed={selectedAge === option.id} onClick={() => setSelectedAge(option.id)}>{option.label}</button>)}</div>
+      <p className="age-description">{ageDescription}</p>
+    </section>
+    <div className="filter-row subject-filter-row" aria-label="বিষয় বেছে নাও">{[{ id: 'all', label: 'সব বিষয়' }, ...learningPaths.map((path) => ({ id: path.id, label: path.title }))].map((item) => <button key={item.id} type="button" className={selected === item.id ? 'filter-chip filter-active' : 'filter-chip'} aria-pressed={selected === item.id} onClick={() => setSelected(item.id)}>{item.label}</button>)}</div>
+    <div className="learning-path-list">{visiblePaths.map((path) => <section key={path.id} className="learning-path-section"><div className={`learning-path-header`}><div className={`path-icon path-${path.color}`}>{path.icon}</div><div><h2>{path.title}</h2><p>{path.description}</p></div><span className="path-count">{path.lessons.length}টি পাঠ</span></div><div className="lesson-list">{path.lessons.map((lesson, index) => { const isComplete = completed.includes(lesson.id); const locked = lesson.status === 'coming-soon'; return <button type="button" className={`lesson-row ${locked ? 'lesson-locked' : ''}`} key={lesson.id} onClick={() => { if (!locked) onOpenLesson(path, lesson.id) }} disabled={locked} aria-label={lesson.title + ' খুলুন'}><span className={`lesson-index ${isComplete ? 'lesson-index-done' : ''}`}>{isComplete ? <Check size={17} /> : locked ? <LockKeyhole size={16} /> : String(index + 1).padStart(2, '0')}</span><span className="lesson-row-copy"><strong>{lesson.title}</strong><span>{lesson.subtitle}</span></span><span className="lesson-duration"><Clock3 size={13} />{lesson.duration}</span>{locked ? <span className="coming-label">শিগগিরই</span> : <span className="lesson-open" aria-hidden="true"><ChevronRight size={18} /></span>}</button> })}</div></section>)}</div>
+    {visiblePaths.length === 0 && <p className="empty-lessons">এই বয়সের জন্য এই বিষয়ে পাঠ নেই। অন্য বয়সের পাঠ বেছে দেখো।</p>}
   </div>
 }
 
@@ -229,7 +254,7 @@ function LessonView({ lessonId, path, completed, onBack, onComplete, onPractice 
 
   return <div className="page-content lesson-page">
     <button className="back-link" onClick={onBack}><ArrowLeft size={16} /> শেখার পথে ফিরে যাও</button>
-    <div className="lesson-topline"><span className="lesson-tag">{path.title}</span><span><Clock3 size={14} /> {lesson?.duration ?? '৮ মিনিট'}</span><span>ধাপে ধাপে শেখা</span></div>
+    <div className="lesson-topline"><span className="lesson-tag">{path.title}</span><span className="lesson-age-chip">{ageBandLabels[lesson?.ageBand ?? '8-9']}</span><span><Clock3 size={14} /> {lesson?.duration ?? '৮ মিনিট'}</span><span>ধাপে ধাপে শেখা</span></div>
     <h1 className="lesson-title">{lesson?.title ?? 'গণিতের পাঠ'}</h1>
     <p className="lesson-lead">{lesson?.objective ?? content.concept}</p>
     <div className="lesson-layout">
