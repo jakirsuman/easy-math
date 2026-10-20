@@ -85,7 +85,7 @@ export const learningPaths: LearningPath[] = [
       { id: 'shapes', ageBand: '8-9', title: 'আকার ও বৈশিষ্ট্য', subtitle: 'চারপাশের আকার চিনে নিই', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'চারপাশের জিনিসের আকার ও বাহু চিনে নিই।' },
       { id: 'perimeter-area', ageBand: '10-11', title: 'পরিসীমা ও ক্ষেত্রফল', subtitle: 'চারপাশ আর ভেতরের জায়গা', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'আকারের চারপাশ ও ভেতরের জায়গার হিসাব করি।' },
       { id: 'angles', ageBand: '10-11', title: 'কোণ ও ডিগ্রি', subtitle: 'কোণ কতটা খোলা?', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'কোণ কতটা খোলা, তা বুঝি ও মাপি।' },
-      { id: 'unit-conversion', ageBand: '10-11', title: 'একক রূপান্তর', subtitle: 'মিটার আর সেন্টিমিটার', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'মিটার ও সেন্টিমিটারের মধ্যে বদল করি।' },
+      { id: 'unit-conversion', ageBand: '8-9', title: 'একক রূপান্তর', subtitle: 'মিটার আর সেন্টিমিটার', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'মিটার ও সেন্টিমিটারের মধ্যে বদল করি।' },
       { id: 'triangles', ageBand: '12+', title: 'ত্রিভুজের ধরন ও কোণ', subtitle: 'তিন বাহু, তিন কোণ', duration: '৮ মিনিট', status: 'available', kind: 'visual', objective: 'ত্রিভুজের বাহু ও কোণ দেখে তার বৈশিষ্ট্য বুঝি।' },
     ],
   },
