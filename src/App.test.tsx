@@ -65,7 +65,7 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(screen.getByRole('button', { name: '১০–১১ বছর' }))
     fireEvent.click(screen.getByRole('button', { name: 'দশমিক সংখ্যা খুলুন' }))
     expect(screen.getByRole('heading', { name: 'দশমিক সংখ্যা' })).toBeInTheDocument()
-    expect(screen.getByText(/দশমিক সংখ্যা পূর্ণ এককের ভগ্নাংশ প্রকাশ করে/)).toBeInTheDocument()
+    expect(screen.getByText(/দশমিক সংখ্যা দিয়ে পুরো জিনিসের সঙ্গে তার ছোট অংশও দেখানো যায়/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '০.৮৫' }))
     fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই/ }))
     expect(screen.getByText('সঠিক উত্তর!')).toBeInTheDocument()
