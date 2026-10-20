@@ -35,10 +35,10 @@ describe('Easy Math learning flow', () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: 'অনুশীলন' })[0])
     fireEvent.click(screen.getByRole('button', { name: /দৈনিক চ্যালেঞ্জ/ }))
-    expect(screen.getByText('1 / 5টি প্রশ্ন')).toBeInTheDocument()
+    expect(screen.getByText(/1 \/ 5টি প্রশ্ন/)).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('বিষয় বেছে নাও'), { target: { value: 'decimals' } })
     expect(screen.getByText(/৩\.৪ \+ ০\.৬ = কত\?/)).toBeInTheDocument()
-    expect(screen.getByText('1 / 2টি প্রশ্ন')).toBeInTheDocument()
+    expect(screen.getByText(/1 \/ 2টি প্রশ্ন/)).toBeInTheDocument()
   })
 
   it('shows a results summary after a daily challenge is completed', () => {
