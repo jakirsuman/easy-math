@@ -29,7 +29,8 @@ export const learningPaths: LearningPath[] = [
     lessons: [
       { id: 'place-value', title: 'সংখ্যার স্থানীয় মান', subtitle: 'একক, দশক ও শতক', duration: '৬ মিনিট', status: 'available', kind: 'lesson', objective: 'সংখ্যার প্রতিটি অঙ্কের স্থানীয় মান বুঝতে পারা।' },
       { id: 'number-line', title: 'সংখ্যারেখায় সংখ্যা', subtitle: 'সংখ্যার অবস্থান ও দূরত্ব', duration: '৮ মিনিট', status: 'available', kind: 'visual', objective: 'সংখ্যারেখায় সংখ্যা সাজানো ও দূরত্ব বোঝা।' },
-      { id: 'operations', title: 'যোগ, বিয়োগ, গুণ ও ভাগ', subtitle: 'চারটি মৌলিক প্রক্রিয়া', duration: '১০ মিনিট', status: 'coming-soon', kind: 'practice', objective: 'দৈনন্দিন সমস্যায় মৌলিক গাণিতিক প্রক্রিয়া প্রয়োগ করা।' },
+      { id: 'operations', title: 'যোগ, বিয়োগ, গুণ ও ভাগ', subtitle: 'চারটি মৌলিক প্রক্রিয়া', duration: '১০ মিনিট', status: 'available', kind: 'practice', objective: 'দৈনন্দিন সমস্যায় মৌলিক গাণিতিক প্রক্রিয়া প্রয়োগ করা।' },
+      { id: 'factors-multiples', title: 'গুণনীয়ক ও গুণিতক', subtitle: 'সংখ্যার গুণের সম্পর্ক', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'গুণনীয়ক ও গুণিতক আলাদা করতে এবং ভাগ দিয়ে যাচাই করতে পারা।' },
     ],
   },
   {
@@ -43,8 +44,10 @@ export const learningPaths: LearningPath[] = [
       { id: 'fraction-basics', title: 'ভগ্নাংশের শুরু', subtitle: 'লব, হর ও সমান অংশ', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'ভগ্নাংশের লব ও হর এবং সমান অংশের ধারণা বোঝা।' },
       { id: 'equivalent-fractions', title: 'সমতুল্য ভগ্নাংশ', subtitle: 'একই মান, ভিন্ন রূপ', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'সমতুল্য ভগ্নাংশ শনাক্ত করা এবং তৈরি করা।' },
       { id: 'fraction-practice', title: 'ভগ্নাংশ অনুশীলন', subtitle: 'শিখে নিজে করি', duration: '৫ মিনিট', status: 'available', kind: 'practice', objective: 'ভগ্নাংশের ধারণা প্রশ্নের মাধ্যমে যাচাই করা।' },
-      { id: 'decimals', title: 'দশমিক সংখ্যা', subtitle: 'ভগ্নাংশ থেকে দশমিক', duration: '৮ মিনিট', status: 'coming-soon', kind: 'lesson', objective: 'ভগ্নাংশ ও দশমিকের সম্পর্ক বোঝা।' },
-      { id: 'percentages', title: 'শতকরা', subtitle: '১০০-এর মধ্যে কত?', duration: '১০ মিনিট', status: 'coming-soon', kind: 'lesson', objective: 'শতকরা হিসাব করা ও বাস্তব জীবনে প্রয়োগ করা।' },
+      { id: 'decimals', title: 'দশমিক সংখ্যা', subtitle: 'ভগ্নাংশ থেকে দশমিক', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'ভগ্নাংশ ও দশমিকের সম্পর্ক বোঝা।' },
+      { id: 'percentages', title: 'শতকরা', subtitle: '১০০-এর মধ্যে কত?', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'শতকরা হিসাব করা ও বাস্তব জীবনে প্রয়োগ করা।' },
+      { id: 'fraction-addition', title: 'ভগ্নাংশের যোগ ও বিয়োগ', subtitle: 'সমান হর ও ভিন্ন হর', duration: '১০ মিনিট', status: 'available', kind: 'visual', objective: 'সমান হর ও ভিন্ন হরের ভগ্নাংশ যোগ-বিয়োগ করতে পারা।' },
+      { id: 'decimal-operations', title: 'দশমিকের যোগ ও বিয়োগ', subtitle: 'দশমিক বিন্দু মিলিয়ে হিসাব', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'দশমিক ঘর ঠিক রেখে যোগ ও বিয়োগ করতে পারা।' },
     ],
   },
   {
@@ -55,9 +58,10 @@ export const learningPaths: LearningPath[] = [
     color: 'orange',
     progress: 0,
     lessons: [
-      { id: 'ratio', title: 'অনুপাতের ধারণা', subtitle: 'দুটি পরিমাণের তুলনা', duration: '৮ মিনিট', status: 'coming-soon', kind: 'lesson', objective: 'অনুপাত দিয়ে দুটি পরিমাণ তুলনা করা।' },
-      { id: 'variables', title: 'চলক ও রাশি', subtitle: 'x আসলে কী?', duration: '৯ মিনিট', status: 'coming-soon', kind: 'visual', objective: 'চলক ও বীজগাণিতিক রাশির অর্থ বোঝা।' },
-      { id: 'linear-equations', title: 'সহজ সমীকরণ', subtitle: 'সমতার দুই পাশ', duration: '১০ মিনিট', status: 'coming-soon', kind: 'lesson', objective: 'এক ধাপের রৈখিক সমীকরণ সমাধান করা।' },
+      { id: 'ratio', title: 'অনুপাতের ধারণা', subtitle: 'দুটি পরিমাণের তুলনা', duration: '৮ মিনিট', status: 'available', kind: 'lesson', objective: 'অনুপাত দিয়ে দুটি পরিমাণ তুলনা করা।' },
+      { id: 'variables', title: 'চলক ও রাশি', subtitle: 'x আসলে কী?', duration: '৯ মিনিট', status: 'available', kind: 'visual', objective: 'চলক ও বীজগাণিতিক রাশির অর্থ বোঝা।' },
+      { id: 'linear-equations', title: 'সহজ সমীকরণ', subtitle: 'সমতার দুই পাশ', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'এক ধাপের রৈখিক সমীকরণ সমাধান করা।' },
+      { id: 'proportion', title: 'সমানুপাত ও একক দর', subtitle: 'একটির দাম থেকে অনেকগুলোর দাম', duration: '৮ মিনিট', status: 'available', kind: 'practice', objective: 'একক মান ও সমানুপাত ব্যবহার করে অজানা পরিমাণ বের করা।' },
     ],
   },
   {
@@ -68,8 +72,9 @@ export const learningPaths: LearningPath[] = [
     color: 'green',
     progress: 0,
     lessons: [
-      { id: 'shapes', title: 'আকার ও বৈশিষ্ট্য', subtitle: 'ত্রিভুজ, বর্গ ও বৃত্ত', duration: '৭ মিনিট', status: 'coming-soon', kind: 'visual', objective: 'মৌলিক জ্যামিতিক আকৃতি শনাক্ত করা।' },
-      { id: 'perimeter-area', title: 'পরিসীমা ও ক্ষেত্রফল', subtitle: 'সীমানা আর ভেতরের জায়গা', duration: '১০ মিনিট', status: 'coming-soon', kind: 'lesson', objective: 'পরিসীমা ও ক্ষেত্রফলের পার্থক্য এবং হিসাব বোঝা।' },
+      { id: 'shapes', title: 'আকার ও বৈশিষ্ট্য', subtitle: 'ত্রিভুজ, বর্গ ও বৃত্ত', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'মৌলিক জ্যামিতিক আকৃতি শনাক্ত করা।' },
+      { id: 'perimeter-area', title: 'পরিসীমা ও ক্ষেত্রফল', subtitle: 'সীমানা আর ভেতরের জায়গা', duration: '১০ মিনিট', status: 'available', kind: 'lesson', objective: 'পরিসীমা ও ক্ষেত্রফলের পার্থক্য এবং হিসাব বোঝা।' },
+      { id: 'angles', title: 'কোণ ও ডিগ্রি', subtitle: 'সূক্ষ্ম, সমকোণ ও স্থূলকোণ', duration: '৭ মিনিট', status: 'available', kind: 'visual', objective: 'কোণ পরিমাপ ও কোণের ধরন শনাক্ত করতে পারা।' },
     ],
   },
 ]
