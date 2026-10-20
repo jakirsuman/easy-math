@@ -11,14 +11,16 @@ Each available lesson follows a Bengali-first sequence:
 6. **Takeaways and hint** — recap the key ideas and provide optional support.
 7. **Completion and practice** — save lesson completion locally and continue to practice.
 
-Fraction lessons additionally use the interactive fraction model. Progress bars are calculated from completed lessons in each learning path.
+Fraction lessons use an interactive fraction model. The Math Lab now includes three hands-on explorations: fraction/percentage equivalence, an adjustable algebra balance model, and a rectangle explorer with live perimeter and area calculations. Progress bars are calculated from completed lessons in each learning path.
 
 ## Current coverage
-The four learning paths now contain 18 guided lessons:
-- Number sense and arithmetic: place value, number line, four operations, factors and multiples.
-- Fractions, decimals and percentages: fraction basics, equivalent fractions, fraction practice, decimals, percentages, fraction addition/subtraction, decimal operations.
-- Ratio and algebra: ratio, variables and expressions, one-step equations, proportion and unit price.
-- Geometry and measurement: shapes, perimeter and area, angles.
+The four learning paths now contain 27 guided lessons:
+- Number sense and arithmetic: place value, number line, four operations, factors and multiples, positive and negative numbers, order of operations, HCF/LCM, and averages.
+- Fractions, decimals and percentages: fraction basics, equivalent fractions, fraction practice, decimals, percentages, fraction addition/subtraction, decimal operations, fraction multiplication/division, and decimal rounding.
+- Ratio and algebra: ratio, variables and expressions, one-step equations, proportion and unit price, and two-step equations.
+- Geometry and measurement: shapes, perimeter and area, angles, unit conversion, and triangle properties.
+
+The practice bank contains 89 Bengali-first multiple-choice questions, including 64 newly added questions distributed across arithmetic, number sense, fractions, decimals, percentages, ratio, algebra, and geometry. Mixed practice selects up to 10 questions; the daily challenge selects five for the current date.
 
 All listed lessons are available. Each lesson has an authored concept, worked example, at least three steps, a common-mistake note, hint, multiple-choice check, canonical answer, explanation, and takeaways.
 
@@ -32,4 +34,4 @@ All listed lessons are available. Each lesson has an authored concept, worked ex
 - Run the unit tests and production build before merging content changes.
 
 ## Current product limitations
-Progress remains browser-local and is not synced across devices. The lesson checks are formative, not a grade-level placement test. Future content should add varied question types, more practice coverage, and reviewed curriculum alignment before introducing mastery gates.
+Progress remains browser-local and is not synced across devices. The lesson checks are formative, not a grade-level placement test. Future content should add varied response formats (such as numeric entry and matching), expert review against the intended school curriculum, and more diagnostic feedback before introducing mastery gates.
