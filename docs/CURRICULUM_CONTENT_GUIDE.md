@@ -1,5 +1,9 @@
 # Easy Math curriculum content guide
 
+## Typography for numerical learning
+
+Use **Noto Sans Bengali** for Bengali glyphs and Bengali numerals, with **Inter** retained as the preferred Latin interface font. Numerical counters, fractions, scores, and live model outputs should prefer Noto Sans Bengali and use tabular numeral spacing where supported. Avoid applying Latin-only font stacks to elements that contain Bengali digits or mixed-script text. Preserve comfortable line height for Bengali conjuncts and vowel marks.
+
 ## Learner experience
 Each available lesson follows a Bengali-first sequence:
 
