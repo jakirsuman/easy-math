@@ -30,4 +30,29 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByText('সঠিক উত্তর!')).toBeInTheDocument()
     expect(screen.getByText(/মোট ২টি সমান অংশের মধ্যে ১টি অংশ/)).toBeInTheDocument()
   })
+
+  it('offers a five-question daily challenge and topic-filtered practice', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'অনুশীলন' })[0])
+    fireEvent.click(screen.getByRole('button', { name: /দৈনিক চ্যালেঞ্জ/ }))
+    expect(screen.getByText(/1 \/ 5টি প্রশ্ন/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /মিশ্র অনুশীলন/ }))
+    fireEvent.change(screen.getByLabelText('বিষয় বেছে নাও'), { target: { value: 'decimals' } })
+    expect(screen.getByText(/০\.৫-এর ভগ্নাংশ রূপ/)).toBeInTheDocument()
+    expect(screen.getByText(/1 \/ 2টি প্রশ্ন/)).toBeInTheDocument()
+  })
+
+  it('shows a results summary after a daily challenge is completed', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'অনুশীলন' })[0])
+    fireEvent.click(screen.getByRole('button', { name: /দৈনিক চ্যালেঞ্জ/ }))
+    for (let i = 0; i < 5; i += 1) {
+      fireEvent.click(screen.getAllByRole('button', { name: /^[ABC] / })[0])
+      fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই/ }))
+      fireEvent.click(screen.getByRole('button', { name: i === 4 ? /ফলাফল দেখো/ : /পরের প্রশ্ন/ }))
+    }
+    expect(screen.getByText('আজকের চ্যালেঞ্জ সম্পন্ন')).toBeInTheDocument()
+    expect(screen.getByText('নির্ভুলতা')).toBeInTheDocument()
+  })
+
 })

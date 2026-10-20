@@ -241,29 +241,122 @@ function FractionVisualizer({ numerator, denominator, onNumeratorChange, onDenom
 }
 
 function PracticeView({ onRecord, onFinish }: { onRecord: (correct: boolean) => void; onFinish: () => void }) {
+  const [mode, setMode] = useState<'mixed' | 'daily'>('mixed')
+  const [topic, setTopic] = useState('all')
   const [index, setIndex] = useState(0)
   const [selected, setSelected] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [score, setScore] = useState(0)
-  const question = starterQuestions[index]
-  const isCorrect = selected === question.answer
+  const [finished, setFinished] = useState(false)
+
+  const questions = useMemo(() => {
+    const pool = starterQuestions.filter((item) => topic === 'all' || item.topic === topic)
+    if (!pool.length) return []
+    if (mode === 'daily') {
+      const day = new Date().toLocaleDateString('en-CA')
+      return [...pool].sort((a, b) => {
+        const hash = (id: string) => [...(day + id)].reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) >>> 0, 7)
+        return hash(a.id) - hash(b.id)
+      }).slice(0, Math.min(5, pool.length))
+    }
+    const [first, ...rest] = pool
+    for (let i = rest.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[rest[i], rest[j]] = [rest[j], rest[i]]
+    }
+    return [first, ...rest].slice(0, Math.min(10, pool.length))
+  }, [mode, topic])
+
+  const question = questions[index]
+  const isCorrect = Boolean(question && selected === question.answer)
+
+  function changeSession(nextMode: 'mixed' | 'daily') {
+    setMode(nextMode)
+    setIndex(0)
+    setSelected('')
+    setSubmitted(false)
+    setScore(0)
+    setFinished(false)
+  }
+
+  function changeTopic(nextTopic: string) {
+    setTopic(nextTopic)
+    setIndex(0)
+    setSelected('')
+    setSubmitted(false)
+    setScore(0)
+    setFinished(false)
+  }
+
   function submit() {
-    if (!selected || submitted) return
+    if (!question || !selected || submitted) return
     setSubmitted(true)
     onRecord(isCorrect)
     if (isCorrect) setScore((value) => value + 1)
   }
+
   function next() {
-    if (index + 1 >= starterQuestions.length) { onFinish(); return }
+    if (index + 1 >= questions.length) {
+      setFinished(true)
+      return
+    }
     setIndex((value) => value + 1)
     setSelected('')
     setSubmitted(false)
   }
-  return <div className="page-content practice-page"><button className="back-link" onClick={onFinish}><ArrowLeft size={16} /> অগ্রগতিতে ফিরে যাও</button><div className="practice-header"><div><div className="eyebrow">ছোট্ট চ্যালেঞ্জ</div><h1>এবার নিজে করো</h1><p>ভুল হলে সমস্যা নেই—প্রতিটি প্রশ্ন থেকে কিছু শেখা যায়।</p></div><div className="quiz-score"><Sparkles size={17} /><strong>{score} পয়েন্ট</strong></div></div>
-    <div className="quiz-card"><div className="quiz-top"><span>ভগ্নাংশ · প্রশ্ন {index + 1} / {starterQuestions.length}</span><span><Clock3 size={14} /> সময় নিয়ে করো</span></div><div className="quiz-progress"><div style={{ width: `${(index + 1) / starterQuestions.length * 100}%` }} /></div><h2>{question.prompt}</h2><div className="answer-options">{question.options.map((option, optionIndex) => <button key={option} disabled={submitted} className={`answer-option ${selected === option ? 'answer-selected' : ''} ${submitted && option === question.answer ? 'answer-correct' : ''} ${submitted && selected === option && !isCorrect ? 'answer-wrong' : ''}`} onClick={() => setSelected(option)}><span className="option-letter">{['A', 'B', 'C'][optionIndex]}</span><span>{option}</span>{submitted && option === question.answer && <Check size={18} />}</button>)}</div>
-    {submitted && <div className={`answer-feedback ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}`}><strong>{isCorrect ? 'সঠিক উত্তর!' : 'আরেকবার বুঝে নিই'}</strong><p>{question.explanation}</p></div>}
-    <div className="quiz-footer"><span>{submitted ? (isCorrect ? '+৫ XP অর্জন' : 'চেষ্টা চালিয়ে যাও') : 'একটি উত্তর বেছে নাও'}</span>{!submitted ? <button className="button-primary" disabled={!selected} onClick={submit}>উত্তর যাচাই <ArrowRight size={16} /></button> : <button className="button-primary" onClick={next}>{index + 1 === starterQuestions.length ? 'ফলাফল দেখো' : 'পরের প্রশ্ন'} <ArrowRight size={16} /></button>}</div></div>
-    <div className="practice-note"><Lightbulb size={18} /><p><strong>শেখার টিপস:</strong> উত্তর দেওয়ার আগে প্রশ্নটি নিজের ভাষায় বোঝার চেষ্টা করো। প্রয়োজনে শেখার পথে ফিরে গিয়ে উদাহরণটি আবার দেখো।</p></div>
+
+  if (finished) {
+    const accuracy = questions.length ? Math.round(score / questions.length * 100) : 0
+    return <div className="page-content practice-page">
+      <div className="quiz-result-card">
+        <div className="result-icon"><Trophy size={30} /></div>
+        <span className="eyebrow">{mode === 'daily' ? 'আজকের চ্যালেঞ্জ সম্পন্ন' : 'অনুশীলন শেষ'}</span>
+        <h1>{accuracy >= 80 ? 'দারুণ অগ্রগতি!' : accuracy >= 50 ? 'ভালো চেষ্টা!' : 'চর্চা চালিয়ে যাও'}</h1>
+        <p>ভুল উত্তরও শেখার সুযোগ। ব্যাখ্যাগুলো আবার দেখে নিলে ধারণা আরও পরিষ্কার হবে।</p>
+        <div className="result-stats">
+          <div><span>সঠিক উত্তর</span><strong>{score}/{questions.length}</strong></div>
+          <div><span>নির্ভুলতা</span><strong>{accuracy}%</strong></div>
+          <div><span>অর্জিত XP</span><strong>{score * 5}</strong></div>
+        </div>
+        <div className="result-actions">
+          <button className="button-secondary" onClick={() => changeSession(mode === 'daily' ? 'daily' : 'mixed')}><RotateCcw size={16} /> আবার চেষ্টা করো</button>
+          <button className="button-primary" onClick={onFinish}>অগ্রগতি দেখো <ArrowRight size={16} /></button>
+        </div>
+      </div>
+    </div>
+  }
+
+  if (!question) return <div className="page-content practice-page"><h1>এই বিষয়ে প্রশ্ন এখনো যোগ করা হয়নি</h1><button className="button-primary" onClick={() => changeTopic('all')}>সব বিষয় থেকে অনুশীলন</button></div>
+
+  return <div className="page-content practice-page">
+    <button className="back-link" onClick={onFinish}><ArrowLeft size={16} /> অগ্রগতিতে ফিরে যাও</button>
+    <div className="practice-header"><div><div className="eyebrow">ছোট্ট চ্যালেঞ্জ</div><h1>এবার নিজে করো</h1><p>প্রতিবার নতুন প্রশ্ন অনুশীলন করো। ভুল হলে ব্যাখ্যা দেখে শিখে নাও।</p></div><div className="quiz-score"><Sparkles size={17} /><strong>{score} পয়েন্ট</strong></div></div>
+    <div className="practice-modes" aria-label="অনুশীলনের ধরন">
+      <button className={mode === 'mixed' ? 'practice-mode practice-mode-active' : 'practice-mode'} onClick={() => changeSession('mixed')}><Target size={17} /><span><strong>মিশ্র অনুশীলন</strong><small>১০টি পর্যন্ত প্রশ্ন</small></span></button>
+      <button className={mode === 'daily' ? 'practice-mode practice-mode-active' : 'practice-mode'} onClick={() => changeSession('daily')}><Flame size={17} /><span><strong>দৈনিক চ্যালেঞ্জ</strong><small>প্রতিদিন একই ৫টি প্রশ্ন</small></span></button>
+    </div>
+    <label className="topic-filter">বিষয় বেছে নাও
+      <select value={topic} onChange={(event) => changeTopic(event.target.value)}>
+        <option value="all">সব বিষয়</option>
+        <option value="arithmetic">যোগ, বিয়োগ, গুণ ও ভাগ</option>
+        <option value="numbers">সংখ্যা ও স্থানীয় মান</option>
+        <option value="fractions">ভগ্নাংশ</option>
+        <option value="decimals">দশমিক</option>
+        <option value="percentages">শতকরা</option>
+        <option value="ratio">অনুপাত</option>
+        <option value="algebra">বীজগণিত</option>
+        <option value="geometry">জ্যামিতি</option>
+      </select>
+    </label>
+    <div className="quiz-card">
+      <div className="quiz-top"><span>{index + 1} / {questions.length}টি প্রশ্ন · {question.topic === 'fractions' ? 'ভগ্নাংশ' : question.topic === 'arithmetic' ? 'পাটিগণিত' : question.topic === 'numbers' ? 'সংখ্যা' : question.topic === 'decimals' ? 'দশমিক' : question.topic === 'percentages' ? 'শতকরা' : question.topic === 'ratio' ? 'অনুপাত' : question.topic === 'algebra' ? 'বীজগণিত' : 'জ্যামিতি'}</span><span><Clock3 size={14} /> বুঝে উত্তর দাও</span></div>
+      <div className="quiz-progress"><div style={{ width: `${(index + 1) / questions.length * 100}%` }} /></div>
+      <h2>{question.prompt}</h2>
+      <div className="answer-options">{question.options.map((option, optionIndex) => <button key={option} disabled={submitted} className={`answer-option ${selected === option ? 'answer-selected' : ''} ${submitted && option === question.answer ? 'answer-correct' : ''} ${submitted && selected === option && !isCorrect ? 'answer-wrong' : ''}`} onClick={() => setSelected(option)}><span className="option-letter">{['A', 'B', 'C'][optionIndex]}</span><span>{option}</span>{submitted && option === question.answer && <Check size={18} />}</button>)}</div>
+      {submitted && <div className={`answer-feedback ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}`}><strong>{isCorrect ? 'সঠিক উত্তর!' : 'আরেকবার বুঝে নিই'}</strong><p>{question.explanation}</p></div>}
+      <div className="quiz-footer"><span>{submitted ? (isCorrect ? '+৫ XP অর্জন' : 'চেষ্টা চালিয়ে যাও') : 'একটি উত্তর বেছে নাও'}</span>{!submitted ? <button className="button-primary" disabled={!selected} onClick={submit}>উত্তর যাচাই <ArrowRight size={16} /></button> : <button className="button-primary" onClick={next}>{index + 1 === questions.length ? 'ফলাফল দেখো' : 'পরের প্রশ্ন'} <ArrowRight size={16} /></button>}</div>
+    </div>
+    <div className="practice-note"><Lightbulb size={18} /><p><strong>শেখার টিপস:</strong> উত্তর দেওয়ার আগে প্রশ্নটি নিজের ভাষায় বোঝার চেষ্টা করো। প্রতিটি উত্তরের ব্যাখ্যা দেখো, তারপর পরের প্রশ্নে যাও।</p></div>
   </div>
 }
 
