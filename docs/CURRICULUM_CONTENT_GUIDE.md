@@ -2,7 +2,7 @@
 
 ## Typography for numerical learning
 
-Use **Noto Sans Bengali** for Bengali glyphs and Bengali numerals, with **Inter** retained as the preferred Latin interface font. Numerical counters, fractions, scores, and live model outputs should prefer Noto Sans Bengali and use tabular numeral spacing where supported. Avoid applying Latin-only font stacks to elements that contain Bengali digits or mixed-script text. Preserve comfortable line height for Bengali conjuncts and vowel marks.
+Use **Anek Bangla** as the primary typeface for Bengali script and numerical learning screens, with **Inter** as a fallback for Latin interface details. Numerical counters, fractions, scores, and live model outputs should prefer Anek Bangla and use tabular numeral spacing where supported. Avoid applying Latin-only font stacks to elements that contain Bengali digits or mixed-script text. Keep Bengali line height generous for conjuncts and vowel marks. Use the Sopan logo's blue palette: #0B58FC as the primary blue and #0336A4 for dark emphasis, supported by pale blue surfaces instead of the former purple theme.
 
 ## Learner experience
 Each available lesson follows a Bengali-first sequence:
