@@ -20,6 +20,9 @@ describe('Easy Math learning flow', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: /শেখা শুরু করো/ }))
     expect(screen.getByRole('heading', { name: 'ভগ্নাংশের শুরু' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '৩/৪' }))
+    fireEvent.click(screen.getByRole('button', { name: /উত্তর মিলিয়ে দেখি/ }))
+    expect(screen.getByText(/ঠিক ধরেছ/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /পাঠ শেষ করো/ }))
     expect(screen.getByText(/তুমি এই পাঠটি সম্পন্ন করেছ/)).toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('easy-math-progress-v1') || '{}').completedLessons).toContain('fraction-basics')
@@ -130,6 +133,27 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByText('32 বর্গ সেমি')).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('আয়তক্ষেত্রের দৈর্ঘ্য'), { target: { value: '10' } })
     expect(screen.getByText('40 বর্গ সেমি')).toBeInTheDocument()
+  })
+
+  it('teaches place value with manipulable hundreds, tens and ones', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'সংখ্যার স্থানীয় মান খুলুন' }))
+    expect(screen.getByText('৩০০ + ৪০ + ২')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '৪০' }))
+    fireEvent.click(screen.getByRole('button', { name: /উত্তর মিলিয়ে দেখি/ }))
+    expect(screen.getByText(/ঠিক ধরেছ/)).toBeInTheDocument()
+    expect(screen.getByText(/৪ দশক মানে ৪টি দশ/)).toBeInTheDocument()
+  })
+
+  it('teaches multiplication as equal groups with a visual model', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'গুণ মানে সমান দল খুলুন' }))
+    expect(screen.getByText('১২টি', { selector: 'strong' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '১২' }))
+    fireEvent.click(screen.getByRole('button', { name: /উত্তর মিলিয়ে দেখি/ }))
+    expect(screen.getByText(/৪টি দলে ৩টি করে/)).toBeInTheDocument()
   })
 
   it('renders the supplied Sopan wordmark in the app navigation', () => {
