@@ -172,6 +172,28 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByText(/চারটি বাহু সমান/)).toBeInTheDocument()
   })
 
+  it('lets learners choose addition or subtraction for decimal operations', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'সব বয়সের পাঠ' }))
+    fireEvent.click(screen.getByRole('button', { name: 'দশমিকের যোগ ও বিয়োগ খুলুন' }))
+    expect(screen.getByLabelText('দশমিকের ক্রিয়া')).toHaveValue('+')
+    fireEvent.change(screen.getByLabelText('দশমিকের ক্রিয়া'), { target: { value: '−' } })
+    expect(screen.getByText('৩.১০')).toBeInTheDocument()
+    expect(screen.getByText('৬.৪')).toBeInTheDocument()
+    expect(screen.getByText('৩.৩')).toBeInTheDocument()
+  })
+
+  it('visualizes both addends in same-denominator fraction addition', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'সব বয়সের পাঠ' }))
+    fireEvent.click(screen.getByRole('button', { name: 'ভগ্নাংশের যোগ ও বিয়োগ খুলুন' }))
+    expect(screen.getAllByText(/প্রথম ভগ্নাংশ/).length).toBeGreaterThan(0)
+    expect(screen.getByText('দ্বিতীয় ভগ্নাংশ')).toBeInTheDocument()
+    expect(document.querySelectorAll('.fraction-visual-row .fraction-bar')).toHaveLength(2)
+  })
+
   it('makes percentages visible as parts of a 100-cell grid', () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
