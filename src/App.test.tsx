@@ -69,6 +69,9 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'দশমিক সংখ্যা খুলুন' }))
     expect(screen.getByRole('heading', { name: 'দশমিক সংখ্যা' })).toBeInTheDocument()
     expect(screen.getByText(/দশমিক সংখ্যা দিয়ে পুরো জিনিসের সঙ্গে তার ছোট অংশও দেখানো যায়/)).toBeInTheDocument()
+    expect(screen.getByLabelText('এককের ঘর')).toBeInTheDocument()
+    expect(screen.getByLabelText('দশমাংশের ঘর')).toBeInTheDocument()
+    expect(screen.getByLabelText('শতাংশের ঘর')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '০.৮৫' }))
     fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই/ }))
     expect(screen.getByText('সঠিক উত্তর!')).toBeInTheDocument()
@@ -157,7 +160,25 @@ describe('Easy Math learning flow', () => {
     fireEvent.change(screen.getByLabelText('কোটি'), { target: { value: '2' } })
     fireEvent.change(screen.getByLabelText('যে ঘরের মান যাচাই করবে'), { target: { value: '0' } })
     expect(screen.getByText(/কোটি ঘরে/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '২০০০০০০০' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '২,০০,০০,০০০' })).toBeInTheDocument()
+  })
+
+  it('lets learners explore shape properties instead of only reading definitions', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'আকার ও বৈশিষ্ট্য খুলুন' }))
+    expect(screen.getByLabelText('আকার বেছে নাও')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('আকার বেছে নাও'), { target: { value: 'square' } })
+    expect(screen.getByText(/চারটি বাহু সমান/)).toBeInTheDocument()
+  })
+
+  it('makes percentages visible as parts of a 100-cell grid', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: '১০–১১ বছর' }))
+    fireEvent.click(screen.getByRole('button', { name: 'শতকরা খুলুন' }))
+    expect(screen.getByLabelText('শতকরা হার')).toBeInTheDocument()
+    expect(document.querySelectorAll('.percent-grid span')).toHaveLength(100)
   })
 
   it('teaches multiplication as equal groups with a visual model', () => {
