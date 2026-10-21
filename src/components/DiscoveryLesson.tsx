@@ -6,7 +6,7 @@ type Props = {
   lessonId: string; title: string; pathTitle: string; ageLabel: string; completed: boolean
   onBack: () => void; onComplete: () => void; onPractice: () => void
 }
-const bn = (n: number) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[Number(d)])
+const bn = (n: number | string) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[Number(d)])
 
 export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, completed, onBack, onComplete, onPractice }: Props) {
   const [crores, setCrores] = useState(0)
