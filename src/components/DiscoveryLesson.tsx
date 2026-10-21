@@ -55,7 +55,13 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
   const number = Number(digitString || 0) + tenths/10 + hundredths/100 + thousandths/1000
   const selectedRow = placeRows[selectedPlace]
   const selectedValue = selectedRow.value * selectedRow.unit
-  const formatPlace = (v:number) => bn(Number(v.toFixed(3)))
+  const formatPlace = (v:number) => {
+    const rounded = Number(v.toFixed(3))
+    if (!Number.isInteger(rounded)) return bn(String(rounded))
+    const digits = String(rounded)
+    const grouped = digits.length > 3 ? digits.slice(0,-3).replace(/\\B(?=(\\d{2})+(?!\\d))/g, ',') + ',' + digits.slice(-3) : digits
+    return bn(grouped)
+  }
   const expanded = placeRows.filter(row=>row.value!==0).map(row=>formatPlace(row.value*row.unit))
   const product = groups * items
   const correct = place ? formatPlace(selectedValue) : multiply ? bn(product) : bn(numerator) + '/' + bn(denominator)
