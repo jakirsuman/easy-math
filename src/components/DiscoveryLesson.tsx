@@ -48,8 +48,8 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
     { label:'শতাংশ', value:hundredths, set:setHundredths, unit:0.01, color:'decimal-place' },
     { label:'সহস্রাংশ', value:thousandths, set:setThousandths, unit:0.001, color:'decimal-place' },
   ]
-  const digitString = [crores,tenLakhs,lakhs,tenThousands,thousands,hundreds,tens,ones].join('').replace(/^0+(?=\\d)/,'')
-  const groupedWhole = digitString.length > 3 ? digitString.slice(0,-3).replace(/\\B(?=(\\d{2})+(?!\\d))/g, ',') + ',' + digitString.slice(-3) : digitString
+  const digitString = [crores,tenLakhs,lakhs,tenThousands,thousands,hundreds,tens,ones].join('').replace(/^0+(?=\d)/,'')
+  const groupedWhole = digitString.length > 3 ? digitString.slice(0,-3).replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + digitString.slice(-3) : digitString
   const decimalString = [tenths,hundredths,thousandths].join('')
   const displayNumber = bn(groupedWhole || '0') + (tenths || hundredths || thousandths ? '.' + bn(decimalString) : '')
   const number = Number(digitString || 0) + tenths/10 + hundredths/100 + thousandths/1000
