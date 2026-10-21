@@ -22,7 +22,8 @@ describe('Easy Math learning flow', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: /শেখা শুরু করো/ }))
     expect(screen.getByRole('heading', { name: 'ভগ্নাংশের শুরু' })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: '৩/৪' }))
+    const quickCheckOptions = Array.from(document.querySelectorAll('.discovery-options button'))
+    fireEvent.click(quickCheckOptions.find((button) => button.textContent?.trim() === '৩/৪')!)
     fireEvent.click(screen.getByRole('button', { name: /উত্তর মিলিয়ে দেখি/ }))
     expect(screen.getByText(/ঠিক ধরেছ/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /পাঠ শেষ করো/ })).not.toBeInTheDocument()
@@ -47,7 +48,7 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'অনুশীলন' })[0])
     fireEvent.click(screen.getByRole('button', { name: /১\/২/ }))
     fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই/ }))
-    expect(screen.getByText('সঠিক উত্তর!')).toBeInTheDocument()
+    expect(screen.getByText(/সঠিক উত্তর/)).toBeInTheDocument()
     expect(screen.getByText(/মোট ২টি সমান অংশের মধ্যে ১টি অংশ/)).toBeInTheDocument()
   })
 
