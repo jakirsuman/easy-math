@@ -18,13 +18,25 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByText('ভগ্নাংশ, দশমিক ও শতকরা')).toBeInTheDocument()
   })
 
-  it('opens the fraction lesson and records completion locally', async () => {
+  it('requires mastery-check success before recording fraction lesson completion', async () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: /শেখা শুরু করো/ }))
     expect(screen.getByRole('heading', { name: 'ভগ্নাংশের শুরু' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '৩/৪' }))
     fireEvent.click(screen.getByRole('button', { name: /উত্তর মিলিয়ে দেখি/ }))
     expect(screen.getByText(/ঠিক ধরেছ/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /পাঠ শেষ করো/ })).not.toBeInTheDocument()
+    const assessment = getLessonAssessment('fraction-basics', lessonContent['fraction-basics'])
+    for (let index = 0; index < assessment.length; index += 1) {
+      const question = assessment[index]
+      const options = Array.from(document.querySelectorAll('.workshop-question .workshop-options button'))
+      const correct = options.find((button) => button.textContent?.trim() === question.answer)
+      expect(correct, question.id).toBeDefined()
+      fireEvent.click(correct!)
+      fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
+      fireEvent.click(screen.getByRole('button', { name: index === assessment.length - 1 ? /ফলাফল দেখো/ : /পরের প্রশ্ন/ }))
+    }
+    expect(screen.getByText('পাঠের প্রাথমিক দক্ষতা যাচাই পাস')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /পাঠ শেষ করো/ }))
     expect(screen.getByText(/এই পাঠ আগেই শেষ করেছ/)).toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('easy-math-progress-v1') || '{}').completedLessons).toContain('fraction-basics')
