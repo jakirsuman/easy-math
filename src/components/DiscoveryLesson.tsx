@@ -34,8 +34,9 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
     : 'পুরোটা ' + bn(denominator) + 'টি সমান ভাগে ভাগ করা। ' + bn(numerator) + 'টি ভাগ রঙ করা—কোন ভগ্নাংশটি দেখাচ্ছে?'
   const rawOptions = place ? [bn(tens), bn(tens * 10), bn(tens * 100), bn(number)]
     : multiply ? [bn(product), bn(groups + items), bn(groups * Math.max(1, items - 1)), bn(product + groups)]
-    : [bn(numerator) + '/' + bn(denominator), bn(denominator - numerator) + '/' + bn(denominator), bn(numerator) + '/' + bn(denominator + 1), '১/২']
-  const options = Array.from(new Set(rawOptions)).slice(0, 4)
+    : [bn(numerator) + '/' + bn(denominator), bn(denominator - numerator) + '/' + bn(denominator), bn(numerator) + '/' + bn(denominator + 1), '১/২', '২/৩', '৩/৪', '১/৪']
+  const uniqueOptions = Array.from(new Set(rawOptions))
+  const options = uniqueOptions.length >= 4 ? uniqueOptions.slice(0, 4) : Array.from(new Set([...uniqueOptions, '২/৩', '৩/৪', '১/৪', '১/৩'])).slice(0, 4)
   const right = answer === correct
   const explanation = place
     ? bn(tens) + ' দশক মানে ' + bn(tens) + 'টি দশ। তাই ' + bn(tens) + ' × ১০ = ' + bn(tens * 10) + '। অঙ্কটি শুধু ' + bn(tens) + ' নয়—ঘর তার মান বদলে দেয়।'
