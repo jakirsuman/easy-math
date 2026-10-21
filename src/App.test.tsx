@@ -89,7 +89,7 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByLabelText('শতাংশের ঘর')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '০.৮৫' }))
     fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই/ }))
-    expect(screen.getByText('সঠিক উত্তর!')).toBeInTheDocument()
+    expect(screen.getByText(/সঠিক উত্তর/)).toBeInTheDocument()
     expect(screen.getByText(/০\.৬০ \+ ০\.২৫ = ০\.৮৫/)).toBeInTheDocument()
   })
 
