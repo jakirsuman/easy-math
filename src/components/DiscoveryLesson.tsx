@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, Lightbulb, RotateCcw, Sparkles } from 'lucide-react'
+import { lessonContent } from '../data/lessonContent'
+import { getLessonAssessment } from '../data/lessonAssessment'
+import { lessonTeachingNotes } from '../data/lessonTeachingNotes'
 import './DiscoveryLesson.css'
 
 type Props = {
@@ -27,12 +30,28 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
   const [numerator, setNumerator] = useState(3)
   const [answer, setAnswer] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [assessmentIndex,setAssessmentIndex] = useState(0)
+  const [assessmentAnswers,setAssessmentAnswers] = useState<Record<string,string>>({})
+  const [submittedQuestionIds,setSubmittedQuestionIds] = useState<string[]>([])
+  const [firstAttemptCorrect,setFirstAttemptCorrect] = useState<Record<string,boolean>>({})
+  const [assessmentFinished,setAssessmentFinished] = useState(false)
   const [hintOpen, setHintOpen] = useState(false)
   useEffect(() => {
     setCrores(0); setTenLakhs(0); setLakhs(0); setTenThousands(0); setThousands(0)
     setHundreds(3); setTens(4); setOnes(2); setTenths(0); setHundredths(0); setThousandths(0); setSelectedPlace(6)
-    setGroups(4); setItems(3); setDenominator(4); setNumerator(3); setAnswer(''); setSubmitted(false); setHintOpen(false)
+    setGroups(4); setItems(3); setDenominator(4); setNumerator(3); setAnswer(''); setSubmitted(false)
+    setAssessmentIndex(0); setAssessmentAnswers({}); setSubmittedQuestionIds([]); setFirstAttemptCorrect({}); setAssessmentFinished(false); setHintOpen(false)
   }, [lessonId])
+  const staticContent = lessonContent[lessonId] ?? lessonContent['fraction-basics']
+  const assessmentQuestions = getLessonAssessment(lessonId, { question: staticContent.question, options: staticContent.options, answer: staticContent.answer, explanation: staticContent.explanation })
+  const currentAssessmentQuestion = assessmentQuestions[assessmentIndex]
+  const selectedAssessmentAnswer = assessmentAnswers[currentAssessmentQuestion?.id ?? ''] ?? ''
+  const assessmentSubmitted = currentAssessmentQuestion ? submittedQuestionIds.includes(currentAssessmentQuestion.id) : false
+  const currentAssessmentCorrect = currentAssessmentQuestion ? selectedAssessmentAnswer === currentAssessmentQuestion.answer : false
+  const assessmentScore = assessmentQuestions.reduce((score, question) => score + (firstAttemptCorrect[question.id] ? 1 : 0), 0)
+  const passMark = Math.ceil(assessmentQuestions.length * 0.8)
+  const hasMastered = assessmentFinished && assessmentScore >= passMark
+  const teachingNote = lessonTeachingNotes[lessonId]
   const place = lessonId === 'place-value'
   const multiply = lessonId === 'multiplication-groups'
   const placeRows = [
@@ -110,12 +129,17 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
         <div className="discovery-insight"><Lightbulb size={19}/><p><strong>দুটি প্রশ্ন করো:</strong> মোট কয়টি সমান ভাগ? কয়টি ভাগ নেওয়া হয়েছে? হর মোট ভাগ, লব নেওয়া ভাগ বোঝায়।</p></div>
       </>}
     </section>
-    <section className="discovery-card"><div className="discovery-card-top"><span className="discovery-step">২</span><div><h2>এবার তুমি ভেবে বলো</h2><p>ভুল হলেও সমস্যা নেই—ব্যাখ্যা দেখে আবার চেষ্টা করা যাবে।</p></div></div>
+    {teachingNote&&<section className="workshop-deep-dive"><div className="workshop-deep-dive-header"><span>আরও গভীরে বুঝি</span><p>{teachingNote.why}</p></div><div className="workshop-mental-model"><strong>মনে ছবি তৈরি করো</strong><p>{teachingNote.mentalModel}</p></div><div className="workshop-worked-example"><h3>{teachingNote.workedExampleTitle}</h3><p>{teachingNote.workedExample}</p><ol>{teachingNote.workedSteps.map((step,i)=><li key={i}>{step}</li>)}</ol></div><div className="workshop-misconception"><div><strong>সাধারণ ভুল</strong><p>{teachingNote.commonError}</p></div><div><strong>কীভাবে ঠিক করবে</strong><p>{teachingNote.correction}</p></div></div><div className="workshop-transfer"><strong>নিজে প্রয়োগ করো</strong><p>{teachingNote.transfer}</p></div></section>}
+    <section className="discovery-card"><div className="discovery-card-top"><span className="discovery-step">২</span><div><h2>চিত্র দেখে দ্রুত যাচাই</h2><p>এটি একটি ছোট চেকপয়েন্ট। শুধু এই একটি উত্তর দিয়ে পাঠ সম্পন্ন হবে না।</p></div></div>
       <div className="discovery-question"><span>তোমার চ্যালেঞ্জ</span>{place&&<label className="place-question-select">কোন ঘরের স্থানীয় মান যাচাই করবে? <select aria-label="যে ঘরের মান যাচাই করবে" value={selectedPlace} onChange={e=>{setSelectedPlace(Number(e.target.value));setAnswer('');setSubmitted(false)}}>{placeRows.map((row,i)=><option value={i} key={row.label}>{row.label}</option>)}</select></label>}<h3>{question}</h3><div className="discovery-options">{options.map((option)=><button type="button" key={option} disabled={submitted} className={(answer===option?'chosen ':'')+(submitted&&option===correct?'right ':'')+(submitted&&answer===option&&!right?'wrong':'')} onClick={()=>setAnswer(option)}>{option}{submitted&&option===correct&&<Check size={17}/>}</button>)}</div>
         {!submitted ? <button className="button-primary" disabled={!answer} onClick={()=>setSubmitted(true)}>উত্তর মিলিয়ে দেখি <ArrowRight size={16}/></button> : <div className={'discovery-feedback '+(right?'success':'retry')}><strong>{right?'ঠিক ধরেছ! এবার কারণটাও বুঝে নাও।':'আরেকবার ভাবো—চিত্রের সঙ্গে মিলিয়ে দেখো।'}</strong><p>{explanation}</p>{!right&&<button className="text-link" onClick={()=>{setAnswer('');setSubmitted(false)}}><RotateCcw size={14}/> আবার চেষ্টা করো</button>}</div>}
       </div>
     </section>
-    <section className="discovery-finish"><div><strong>{completed?'এই পাঠ আগেই শেষ করেছ।':'বুঝে ফেলেছ?'}</strong><p>উত্তর ঠিক হলে পাঠ শেষ করো। না হলে আবার চেষ্টা করো—শেখার জন্য সময় নেওয়া ভালো।</p></div><button className="button-primary" disabled={!submitted||!right} onClick={onComplete}>{completed?'পাঠ সম্পন্ন':'পাঠ শেষ করো'} <Check size={17}/></button></section>
+    <section className="workshop-card"><div className="workshop-section-title"><span>৩</span><div><h2>পাঁচটি প্রশ্নে শেখা যাচাই</h2><p>ধারণা, হিসাব ও নতুন পরিস্থিতিতে প্রয়োগ—সব মিলিয়ে {bn(assessmentQuestions.length)}টি প্রশ্নের উত্তর দাও। প্রতিটি উত্তরের ব্যাখ্যা পড়ো। প্রথম চেষ্টার ফল থেকে অগ্রগতি হিসাব হবে।</p></div></div>
+      {!assessmentFinished&&currentAssessmentQuestion&&<div className="workshop-question"><div className="mastery-progress-row"><span>প্রশ্ন {bn(assessmentIndex+1)} / {bn(assessmentQuestions.length)}</span><span>পাস করতে {bn(passMark)}টি সঠিক</span></div><div className="mastery-progress-track" role="progressbar" aria-label="যাচাইয়ের অগ্রগতি" aria-valuemin={0} aria-valuemax={assessmentQuestions.length} aria-valuenow={assessmentIndex}><span style={{width:((assessmentIndex+1)/assessmentQuestions.length*100)+'%'}}/></div><h3>{currentAssessmentQuestion.prompt}</h3><div className="workshop-options">{currentAssessmentQuestion.options.map(option=><button type="button" key={option} disabled={assessmentSubmitted} className={(selectedAssessmentAnswer===option?'chosen ':'')+(assessmentSubmitted&&option===currentAssessmentQuestion.answer?' right':'')+(assessmentSubmitted&&selectedAssessmentAnswer===option&&!currentAssessmentCorrect?' wrong':'')} onClick={()=>setAssessmentAnswers(previous=>({...previous,[currentAssessmentQuestion.id]:option}))}>{option}{assessmentSubmitted&&option===currentAssessmentQuestion.answer&&<Check size={16}/>}</button>)}</div>{!assessmentSubmitted?<button className="button-primary" disabled={!selectedAssessmentAnswer} onClick={()=>{setSubmittedQuestionIds(previous=>[...previous,currentAssessmentQuestion.id]);setFirstAttemptCorrect(previous=>({...previous,[currentAssessmentQuestion.id]:currentAssessmentCorrect}))}}>উত্তর যাচাই করি <ArrowRight size={16}/></button>:<div className={'workshop-feedback '+(currentAssessmentCorrect?'success':'retry')}><strong>{currentAssessmentCorrect?'সঠিক উত্তর। কারণটিও বুঝে নাও।':'এইবার সঠিক হয়নি। সমাধান দেখে আবার শিখো।'}</strong>{!currentAssessmentCorrect&&<p>সঠিক উত্তর: <strong>{currentAssessmentQuestion.answer}</strong></p>}<p>{currentAssessmentQuestion.explanation}</p><button className="button-primary" onClick={()=>{if(assessmentIndex===assessmentQuestions.length-1){setAssessmentFinished(true)}else{setAssessmentIndex(index=>index+1)}}}>{assessmentIndex===assessmentQuestions.length-1?'ফলাফল দেখো':'পরের প্রশ্ন'} <ArrowRight size={16}/></button></div>}</div>}
+      {assessmentFinished&&<div className={'mastery-result '+(hasMastered?'mastery-pass':'mastery-retry')}><strong>{hasMastered?'পাঠের প্রাথমিক দক্ষতা যাচাই পাস':'আরও অনুশীলন দরকার'}</strong><p>প্রথম চেষ্টায় {bn(assessmentScore)} / {bn(assessmentQuestions.length)}টি সঠিক। পাস করতে অন্তত {bn(passMark)}টি সঠিক দরকার। {hasMastered?'এখন নতুন পরিস্থিতিতে এই ধারণা ব্যবহার করার অনুশীলন চালিয়ে যাও।':'ভুল প্রশ্নগুলোর ব্যাখ্যা পড়ে পুনরায় যাচাই দাও।'}</p>{!hasMastered&&<button className="button-secondary" onClick={()=>{setAssessmentIndex(0);setAssessmentAnswers({});setSubmittedQuestionIds([]);setFirstAttemptCorrect({});setAssessmentFinished(false)}}><RotateCcw size={15}/> আবার যাচাই দাও</button>}</div>}
+    </section>
+    {assessmentFinished&&<section className="discovery-finish"><div><strong>{hasMastered?(completed?'এই পাঠ আগেই শেষ করেছ।':'এই পাঠের প্রাথমিক লক্ষ্য পূরণ হয়েছে।'):'পাঠটি এখনো সম্পন্ন হয়নি।'}</strong><p>{hasMastered?'কমপক্ষে ৮০% প্রশ্ন প্রথম চেষ্টায় সঠিক হয়েছে।':'পাসের নম্বর পেলে পাঠ সম্পন্ন করা যাবে। ভুল উত্তরের ব্যাখ্যা দেখে আবার চেষ্টা করো।'}</p></div><button className="button-primary" disabled={!hasMastered} onClick={onComplete}>{completed?'পাঠ সম্পন্ন':'পাঠ শেষ করো'} <Check size={17}/></button></section>
     {hintOpen && <div className="hint-panel">{place?'দশকের ঘর থেকে ডান দিকে এক ঘর সরলে এককের ঘর; বাম দিকে এক ঘর সরলে শতকের ঘর।':multiply?'একটি দলের জিনিস গুনো, তারপর একই সংখ্যার দলগুলো একসঙ্গে যোগ করো।':'মোট ভাগ গুনো—সেটি হর। রঙ করা ভাগের সংখ্যা লব।'}</div>}
     <div className="discovery-bottom"><button className="text-link" onClick={()=>setHintOpen((v)=>!v)}><Lightbulb size={15}/>{hintOpen?'ইঙ্গিত লুকাও':'একটু ইঙ্গিত দাও'}</button><button className="text-link" onClick={onPractice}>আরও অনুশীলন করো <ArrowRight size={15}/></button></div>
   </div>
