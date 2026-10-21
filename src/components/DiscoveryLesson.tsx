@@ -75,8 +75,9 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
   const uniqueOptions = Array.from(new Set(rawOptions))
   const options = uniqueOptions.length >= 4 ? uniqueOptions.slice(0, 4) : Array.from(new Set([...uniqueOptions, '২/৩', '৩/৪', '১/৪', '১/৩'])).slice(0, 4)
   const right = answer === correct
+  const placeUnitNoun = selectedRow.label === 'দশক' ? 'দশ' : selectedRow.label === 'শতক' ? 'শত' : selectedRow.label
   const explanation = place
-    ? bn(selectedRow.value) + ' ' + selectedRow.label + ' মানে ' + bn(selectedRow.value) + ' × ' + formatPlace(selectedRow.unit) + ' = ' + formatPlace(selectedValue) + '। অঙ্কটির মান নির্ভর করে এটি কোন ঘরে আছে তার ওপর।'
+    ? bn(selectedRow.value) + ' ' + selectedRow.label + ' মানে ' + bn(selectedRow.value) + 'টি ' + placeUnitNoun + '। তাই ' + bn(selectedRow.value) + ' × ' + formatPlace(selectedRow.unit) + ' = ' + formatPlace(selectedValue) + '। অঙ্কটির মান নির্ভর করে এটি কোন ঘরে আছে তার ওপর।'
     : multiply ? bn(groups) + 'টি দলে ' + bn(items) + 'টি করে: ' + Array.from({length:groups}, () => bn(items)).join(' + ') + ' = ' + bn(product) + '। তাই ' + bn(groups) + ' × ' + bn(items) + ' = ' + bn(product) + '।'
     : bn(denominator) + 'টি সমান ভাগের মধ্যে ' + bn(numerator) + 'টি নেওয়া হয়েছে। হর মোট ভাগ, লব নেওয়া ভাগ—তাই ভগ্নাংশ ' + correct + '।'
   return <div className="page-content discovery-page">
