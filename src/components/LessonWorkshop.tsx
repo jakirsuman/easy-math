@@ -1,0 +1,92 @@
+import { useEffect, useState } from 'react'
+import { ArrowLeft, ArrowRight, Check, Lightbulb, RotateCcw, Sparkles } from 'lucide-react'
+import type { GuidedLessonContent } from '../data/lessonContent'
+import './LessonWorkshop.css'
+
+type Props = {
+  lessonId: string
+  title: string
+  pathTitle: string
+  ageLabel: string
+  completed: boolean
+  content: GuidedLessonContent
+  onBack: () => void
+  onComplete: () => void
+  onPractice: () => void
+}
+const bn = (n: number | string) => String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[Number(d)])
+const fmt = (n: number) => bn(Number(n.toFixed(3)))
+const modes: Record<string, string> = {
+  'number-line':'line','negative-numbers':'line',
+  'operations':'operations','decimal-operations':'operations',
+  'factors-multiples':'factors','hcf-lcm':'factors',
+  'averages':'average',
+  'equivalent-fractions':'fraction','fraction-practice':'fraction','fraction-addition':'fraction','fraction-multiply-divide':'fraction',
+  'decimals':'decimal','percentages':'percent','rounding-decimals':'round',
+  'ratio':'ratio','variables':'algebra','linear-equations':'algebra','two-step-equations':'algebra',
+  'proportion':'proportion',
+  'shapes':'shape','perimeter-area':'shape','angles':'angle','triangles':'triangle',
+  'unit-conversion':'unit','order-of-operations':'order'
+}
+export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed, content, onBack, onComplete, onPractice }: Props) {
+  const mode = modes[lessonId] ?? 'operations'
+  const [position,setPosition] = useState(3)
+  const [a,setA] = useState(6)
+  const [b,setB] = useState(4)
+  const [c,setC] = useState(3)
+  const [numerator,setNumerator] = useState(1)
+  const [denominator,setDenominator] = useState(4)
+  const [factorNumber,setFactorNumber] = useState(12)
+  const [percent,setPercent] = useState(35)
+  const [length,setLength] = useState(6)
+  const [width,setWidth] = useState(3)
+  const [angle,setAngle] = useState(60)
+  const [angleA,setAngleA] = useState(55)
+  const [angleB,setAngleB] = useState(65)
+  const [unitValue,setUnitValue] = useState(2)
+  const [unitPrice,setUnitPrice] = useState(25)
+  const [quantity,setQuantity] = useState(4)
+  const [xValue,setXValue] = useState(5)
+  const [showSteps,setShowSteps] = useState(false)
+  const [selectedAnswer,setSelectedAnswer] = useState('')
+  const [submitted,setSubmitted] = useState(false)
+  const [hintOpen,setHintOpen] = useState(false)
+  useEffect(()=> {
+    setPosition(3);setA(6);setB(4);setC(3);setNumerator(1);setDenominator(4);setFactorNumber(12);setPercent(35)
+    setLength(6);setWidth(3);setAngle(60);setAngleA(55);setAngleB(65);setUnitValue(2);setUnitPrice(25);setQuantity(4);setXValue(5)
+    setShowSteps(false);setSelectedAnswer('');setSubmitted(false);setHintOpen(false)
+  },[lessonId])
+  const isCorrect = selectedAnswer === content.answer
+  const factors = Array.from({length:factorNumber},(_,i)=>i+1).filter(n=>factorNumber%n===0)
+  const commonDenominator = denominator
+  const safeAngleB = Math.min(angleB,179-angleA)
+  const model = () => {
+    if(mode==='line') return <><div className="workshop-numberline"><div className="numberline-track"/>{Array.from({length:21},(_,i)=>i-10).map(n=><button key={n} className={'numberline-tick '+(position===n?'active':'')} onClick={()=>setPosition(n)} aria-label={'সংখ্যা '+bn(n)}><span>{bn(n)}</span></button>)}</div><label className="workshop-control">সংখ্যারেখায় অবস্থান <strong>{bn(position)}</strong><input aria-label="সংখ্যারেখায় অবস্থান" type="range" min="-10" max="10" value={position} onChange={e=>setPosition(Number(e.target.value))}/></label><p className="workshop-insight">{position<0?'শূন্যের বাম পাশে ঋণাত্মক সংখ্যা।':position>0?'শূন্যের ডান পাশে ধনাত্মক সংখ্যা।':'শূন্য ধনাত্মকও নয়, ঋণাত্মকও নয়।'} এক ধাপ ডানে গেলে ১ বাড়ে, বামে গেলে ১ কমে।</p></>
+    if(mode==='operations') return <><div className="workshop-controls"><label>প্রথম সংখ্যা<strong>{bn(a)}</strong><input aria-label="প্রথম সংখ্যা" type="range" min="0" max="20" value={a} onChange={e=>setA(Number(e.target.value))}/></label><label>দ্বিতীয় সংখ্যা<strong>{bn(b)}</strong><input aria-label="দ্বিতীয় সংখ্যা" type="range" min="0" max="20" value={b} onChange={e=>setB(Number(e.target.value))}/></label></div><div className="workshop-equation"><span>{bn(a)}</span><b>+</b><span>{bn(b)}</span><b>=</b><strong>{bn(a+b)}</strong></div><p className="workshop-insight">যোগ মানে একসঙ্গে করা। সংখ্যা দুটো বদলে দেখো—যোগফল কীভাবে বদলায়?</p></>
+    if(mode==='factors') return <><label className="workshop-control">যে সংখ্যাটি পরীক্ষা করবে <strong>{bn(factorNumber)}</strong><input aria-label="যে সংখ্যাটি পরীক্ষা করবে" type="range" min="2" max="36" value={factorNumber} onChange={e=>setFactorNumber(Number(e.target.value))}/></label><div className="factor-result"><div><span>গুণনীয়ক</span><strong>{factors.map(bn).join(' · ')}</strong></div><div><span>প্রথম পাঁচটি গুণিতক</span><strong>{[1,2,3,4,5].map(n=>bn(factorNumber*n)).join(' · ')}</strong></div></div><p className="workshop-insight">যে সংখ্যা দিয়ে {bn(factorNumber)} নিঃশেষে ভাগ যায়, সেটি এর গুণনীয়ক। {bn(factorNumber)}-কে ১, ২, ৩… দিয়ে গুণ করলে গুণিতক পাওয়া যায়।</p></>
+    if(mode==='average') return <><div className="workshop-controls">{[a,b,c,8].map((v,i)=><label key={i}>সংখ্যা {bn(i+1)}<strong>{bn(i===0?a:i===1?b:i===2?c:8)}</strong><input aria-label={'সংখ্যা '+bn(i+1)} type="range" min="0" max="20" value={i===0?a:i===1?b:i===2?c:8} disabled={i===3} onChange={e=>i===0?setA(Number(e.target.value)):i===1?setB(Number(e.target.value)):setC(Number(e.target.value))}/></label>)}</div><div className="workshop-equation"><span>{bn(a+b+c+8)} ÷ ৪</span><b>=</b><strong>{fmt((a+b+c+8)/4)}</strong></div><p className="workshop-insight">গড় = সব সংখ্যার যোগফল ÷ সংখ্যার মোট সংখ্যা। গড় হলো এমন একটি মান, যা সবার মধ্যে সমানভাবে ভাগ করলে পাওয়া যায়।</p></>
+    if(mode==='fraction') return <><div className="workshop-controls"><label>মোট সমান ভাগ<strong>{bn(denominator)}টি</strong><input aria-label="মোট সমান ভাগ" type="range" min="2" max="12" value={denominator} onChange={e=>{const d=Number(e.target.value);setDenominator(d);setNumerator(Math.min(numerator,d))}}/></label><label>নেওয়া ভাগ<strong>{bn(numerator)}টি</strong><input aria-label="নেওয়া ভাগ" type="range" min="1" max={denominator} value={numerator} onChange={e=>setNumerator(Number(e.target.value))}/></label></div><div className="fraction-bar">{Array.from({length:denominator},(_,i)=><span key={i} className={i<numerator?'filled':''}/>)}</div><div className="workshop-equation"><strong>{bn(numerator)}/{bn(denominator)}</strong><span>=</span><strong>{bn(numerator*2)}/{bn(denominator*2)}</strong></div><p className="workshop-insight">লব ও হর দুটিকেই একই অশূন্য সংখ্যা দিয়ে গুণ করলে ভগ্নাংশের মান বদলায় না। একই পুরো জিনিসকে আরও ছোট সমান ভাগে ভাগ করা হয়েছে মাত্র।</p></>
+    if(mode==='decimal') return <><label className="workshop-control">দশমাংশের সংখ্যা<strong>{bn(position<0?0:position)}.০</strong><input aria-label="দশমাংশের সংখ্যা" type="range" min="0" max="9" value={position<0?0:position} onChange={e=>setPosition(Number(e.target.value))}/></label><div className="decimal-place-demo"><div><strong>{bn(position<0?0:position)}</strong><span>একক</span></div><b>.</b><div><strong>{bn(a%10)}</strong><span>দশমাংশ</span></div><div><strong>{bn(b%10)}</strong><span>শতাংশ</span></div></div><p className="workshop-insight">দশমিক বিন্দুর বামে একক; ডানে প্রথম ঘর দশমাংশ, দ্বিতীয় ঘর শতাংশ। ০.৫ মানে ৫/১০, আর ০.০৫ মানে ৫/১০০।</p></>
+    if(mode==='percent') return <><label className="workshop-control">শতকরা হার<strong>{bn(percent)}%</strong><input aria-label="শতকরা হার" type="range" min="0" max="100" value={percent} onChange={e=>setPercent(Number(e.target.value))}/></label><div className="percent-grid">{Array.from({length:100},(_,i)=><span key={i} className={i<percent?'filled':''}/>)}</div><div className="workshop-equation"><span>১০০-এর মধ্যে</span><strong>{bn(percent)}টি</strong><b>=</b><strong>{bn(percent)}%</strong></div><p className="workshop-insight">শতকরা মানে প্রতি ১০০-তে কত। ২৫টি ঘর রঙ হলে ২৫%, অর্ধেক ঘর রঙ হলে ৫০%।</p></>
+    if(mode==='round') return <><div className="workshop-controls"><label>পূর্ণ অংশ<strong>{bn(a%10)}</strong><input aria-label="পূর্ণ অংশ" type="range" min="1" max="9" value={a%10||1} onChange={e=>setA(Number(e.target.value))}/></label><label>দশমাংশ<strong>{bn(b%10)}</strong><input aria-label="দশমাংশ" type="range" min="0" max="9" value={b%10} onChange={e=>setB(Number(e.target.value))}/></label></div><div className="workshop-equation"><strong>{bn(a%10)}.{bn(b%10)}</strong><span>≈</span><strong>{bn((b%10)>=5?(a%10)+1:(a%10))}</strong></div><p className="workshop-insight">নিকটতম পূর্ণ সংখ্যায় পূর্ণীকরণে দশমাংশ ০–৪ হলে নিচের পূর্ণ সংখ্যা, ৫–৯ হলে পরের পূর্ণ সংখ্যা নেওয়া হয়।</p></>
+    if(mode==='ratio') return <><div className="workshop-controls"><label>লাল বল<strong>{bn(a)}</strong><input aria-label="লাল বল" type="range" min="1" max="12" value={a||1} onChange={e=>setA(Number(e.target.value))}/></label><label>নীল বল<strong>{bn(b)}</strong><input aria-label="নীল বল" type="range" min="1" max="12" value={b||1} onChange={e=>setB(Number(e.target.value))}/></label></div><div className="ratio-balls"><div>{Array.from({length:Math.min(a,12)},(_,i)=><span key={i} className="red-ball"/>)}</div><div>{Array.from({length:Math.min(b,12)},(_,i)=><span key={i} className="blue-ball"/>)}</div></div><div className="workshop-equation"><strong>{bn(a)} : {bn(b)}</strong><span>→</span><strong>{bn(a*2)} : {bn(b*2)}</strong></div><p className="workshop-insight">অনুপাত দুটি পরিমাণের তুলনা করে। উভয় সংখ্যাকে একই সংখ্যা দিয়ে গুণ করলে তুলনাটি একই থাকে।</p></>
+    if(mode==='algebra') return <><label className="workshop-control">x-এর মান পরীক্ষা করো<strong>x = {bn(xValue)}</strong><input aria-label="x-এর মান পরীক্ষা করো" type="range" min="0" max="12" value={xValue} onChange={e=>setXValue(Number(e.target.value))}/></label><div className="balance-visual"><div><span>বাম পাশ</span><strong>{bn(2*xValue+3)}</strong><small>২x + ৩</small></div><b>=</b><div><span>ডান পাশ</span><strong>{bn(13)}</strong><small>১৩</small></div></div><p className="workshop-insight">{xValue===5?'দুই পাশ সমান! তাই x = ৫ সমীকরণটির সমাধান।':'দুই পাশ সমান নয়। x-এর মান বদলে দেখো কখন ২x + ৩ = ১৩ হয়।'} সমীকরণে দুই পাশের ভারসাম্য বজায় রাখতে একই কাজ দুই পাশেই করতে হয়।</p></>
+    if(mode==='proportion') return <><div className="workshop-controls"><label>একটির দাম<strong>{bn(unitPrice)} টাকা</strong><input aria-label="একটির দাম" type="range" min="5" max="100" step="5" value={unitPrice} onChange={e=>setUnitPrice(Number(e.target.value))}/></label><label>কতটি কিনবে<strong>{bn(quantity)}টি</strong><input aria-label="কতটি কিনবে" type="range" min="1" max="12" value={quantity} onChange={e=>setQuantity(Number(e.target.value))}/></label></div><div className="workshop-equation"><span>{bn(unitPrice)} × {bn(quantity)}</span><b>=</b><strong>{bn(unitPrice*quantity)} টাকা</strong></div><p className="workshop-insight">একটির দাম জানা থাকলে সমান দামের জিনিসের মোট দাম = একটির দাম × জিনিসের সংখ্যা।</p></>
+    if(mode==='shape') return <><div className="workshop-controls"><label>দৈর্ঘ্য<strong>{bn(length)} সেমি</strong><input aria-label="দৈর্ঘ্য" type="range" min="1" max="12" value={length} onChange={e=>setLength(Number(e.target.value))}/></label><label>প্রস্থ<strong>{bn(width)} সেমি</strong><input aria-label="প্রস্থ" type="range" min="1" max="10" value={width} onChange={e=>setWidth(Number(e.target.value))}/></label></div><div className="rectangle-stage"><div style={{width:(length/12*90+10)+'%',height:(width/10*70+10)+'px'}}/></div><div className="workshop-metrics"><div><span>পরিসীমা</span><strong>{bn(2*(length+width))} সেমি</strong></div><div><span>ক্ষেত্রফল</span><strong>{bn(length*width)} বর্গ সেমি</strong></div></div><p className="workshop-insight">পরিসীমা হলো চারপাশের মোট দৈর্ঘ্য। ক্ষেত্রফল হলো ভেতরের জায়গা। একটির একক সেমি, অন্যটির বর্গ সেমি।</p></>
+    if(mode==='angle') return <><label className="workshop-control">কোণের পরিমাণ<strong>{bn(angle)}°</strong><input aria-label="কোণের পরিমাণ" type="range" min="0" max="180" value={angle} onChange={e=>setAngle(Number(e.target.value))}/></label><div className="angle-stage"><div className="angle-arm fixed"/><div className="angle-arm moving" style={{transform:'rotate('+(-angle)+'deg)'}}/><span>{bn(angle)}°</span></div><p className="workshop-insight">{angle<90?'৯০°-এর কম কোণ সূক্ষ্মকোণ।':angle===90?'ঠিক ৯০° হলো সমকোণ.':angle<180?'৯০°-এর বেশি কিন্তু ১৮০°-এর কম কোণ স্থূলকোণ।':'১৮০° হলো সরলকোণ।'} কোণ হলো দুটি রশ্মির মাঝের ঘোরার পরিমাণ।</p></>
+    if(mode==='triangle') return <><div className="workshop-controls"><label>প্রথম কোণ<strong>{bn(angleA)}°</strong><input aria-label="প্রথম কোণ" type="range" min="10" max="150" value={angleA} onChange={e=>{setAngleA(Number(e.target.value));setAngleB(Math.min(angleB,179-Number(e.target.value)))}}/></label><label>দ্বিতীয় কোণ<strong>{bn(safeAngleB)}°</strong><input aria-label="দ্বিতীয় কোণ" type="range" min="10" max={179-angleA} value={safeAngleB} onChange={e=>setAngleB(Number(e.target.value))}/></label></div><div className="workshop-equation"><span>{bn(angleA)}°</span><b>+</b><span>{bn(safeAngleB)}°</span><b>+</b><strong>{bn(180-angleA-safeAngleB)}°</strong><span>= ১৮০°</span></div><p className="workshop-insight">যে কোনো ত্রিভুজের তিন কোণের যোগফল ১৮০°। তাই তৃতীয় কোণ = ১৮০° − প্রথম কোণ − দ্বিতীয় কোণ।</p></>
+    if(mode==='unit') return <><label className="workshop-control">মিটার<strong>{bn(unitValue)} মিটার</strong><input aria-label="মিটার" type="range" min="1" max="20" value={unitValue} onChange={e=>setUnitValue(Number(e.target.value))}/></label><div className="workshop-equation"><strong>{bn(unitValue)} মিটার</strong><span>=</span><strong>{bn(unitValue*100)} সেন্টিমিটার</strong></div><div className="unit-ruler">{Array.from({length:unitValue},(_,i)=><span key={i}>{bn(i+1)} মি</span>)}</div><p className="workshop-insight">১ মিটার = ১০০ সেন্টিমিটার। বড় একক থেকে ছোট এককে গেলে সংখ্যাটি বড় হয়, কিন্তু দৈর্ঘ্য একই থাকে।</p></>
+    if(mode==='order') return <><div className="workshop-equation"><span>২ + ৩ × ৪</span><b>=</b><strong>{showSteps?'১৪':'?'}</strong></div><button className="button-secondary" onClick={()=>setShowSteps(v=>!v)}>{showSteps?'ধাপ লুকাও':'হিসাবের ধাপ দেখাও'}</button>{showSteps&&<ol className="workshop-steps"><li>আগে গুণ: ৩ × ৪ = ১২</li><li>তারপর যোগ: ২ + ১২ = ১৪</li><li>তাই ২ + ৩ × ৪ = ১৪, ২০ নয়।</li></ol>}<p className="workshop-insight">বন্ধনী থাকলে আগে বন্ধনীর কাজ, তারপর গুণ/ভাগ, শেষে যোগ/বিয়োগ।</p></>
+    return <p className="workshop-insight">এই পাঠের উদাহরণটি দেখো, তারপর নিচের প্রশ্নটি নিজে সমাধান করো।</p>
+  }
+  return <main className="page-content workshop-page">
+    <button className="back-link" onClick={onBack}><ArrowLeft size={16}/> শেখার পথে ফিরে যাও</button>
+    <div className="lesson-topline"><span className="lesson-tag">{pathTitle}</span><span className="lesson-age-chip">{ageLabel}</span><span>ধাপে ধাপে শিখি</span></div>
+    <div className="workshop-heading"><div><div className="workshop-kicker"><Sparkles size={15}/> বুঝি · পরীক্ষা করি · শিখি</div><h1 className="lesson-title">{title}</h1></div><div className="workshop-mark">{mode==='fraction'?'½':mode==='algebra'?'x':mode==='shape'?'▱':mode==='angle'?'∠':mode==='percent'?'%':'∑'}</div></div>
+    <section className="workshop-card"><div className="workshop-section-title"><span>১</span><div><h2>প্রথমে ধারণাটি বুঝি</h2><p>{content.concept}</p></div></div><div className="workshop-example"><strong>{content.exampleTitle}</strong><p>{content.example}</p></div><div className="workshop-section-title"><span>২</span><div><h2>নিজে বদলে দেখো</h2><p>নিচের সংখ্যা বা নিয়ন্ত্রণ বদলাও। চিত্র ও হিসাব কীভাবে বদলায়, খেয়াল করো।</p></div></div><div className="workshop-model">{model()}</div>{showSteps&&<div className="workshop-steps-panel"><h3>ধাপে ধাপে</h3><ol>{content.steps.map((step,i)=><li key={i}>{step}</li>)}</ol><div className="workshop-mistake"><strong>সাধারণ ভুল:</strong> {content.mistake}</div></div>}<button className="button-secondary" onClick={()=>setShowSteps(v=>!v)}>{showSteps?'ধাপগুলো লুকাও':'সমাধানের ধাপ দেখাও'}</button></section>
+    <section className="workshop-card"><div className="workshop-section-title"><span>৩</span><div><h2>এবার তুমি উত্তর দাও</h2><p>নিজে চেষ্টা করো। ভুল হলে ব্যাখ্যা দেখে আবার চেষ্টা করা যাবে।</p></div></div><div className="workshop-question"><h3>{content.question}</h3><div className="workshop-options">{content.options.map(option=><button key={option} disabled={submitted} className={(selectedAnswer===option?'chosen ':'')+(submitted&&option===content.answer?' right':'')+(submitted&&selectedAnswer===option&&!isCorrect?' wrong':'')} onClick={()=>setSelectedAnswer(option)}>{option}{submitted&&option===content.answer&&<Check size={16}/>}</button>)}</div>{!submitted?<button className="button-primary" disabled={!selectedAnswer} onClick={()=>setSubmitted(true)}>উত্তর যাচাই করি <ArrowRight size={16}/></button>:<div className={'workshop-feedback '+(isCorrect?'success':'retry')}><strong>{isCorrect?'সঠিক! এবার কেন, সেটাও বুঝে নাও।':'এখনও ঠিক হয়নি। আবার চেষ্টা করো।'}</strong><p>{content.explanation}</p>{!isCorrect&&<button className="text-link" onClick={()=>{setSelectedAnswer('');setSubmitted(false)}}><RotateCcw size={14}/> আবার চেষ্টা</button>}</div>}</div></section>
+    <section className="workshop-finish"><div><strong>{completed?'এই পাঠ আগেই সম্পন্ন করেছ।':'ধারণাটি বুঝতে পেরেছ?'}</strong><p>সঠিক উত্তর দিলে পাঠ সম্পন্ন হবে। প্রয়োজনে ধাপ বা ইঙ্গিত আবার দেখো।</p></div><button className="button-primary" disabled={!submitted||!isCorrect} onClick={onComplete}>{completed?'পাঠ সম্পন্ন':'পাঠ শেষ করো'} <Check size={16}/></button></section>
+    {hintOpen&&<div className="workshop-hint"><Lightbulb size={18}/><span>{content.hint}</span></div>}<div className="workshop-footer"><button className="text-link" onClick={()=>setHintOpen(v=>!v)}><Lightbulb size={15}/>{hintOpen?'ইঙ্গিত লুকাও':'একটু ইঙ্গিত দাও'}</button><button className="text-link" onClick={onPractice}>আরও অনুশীলন করো <ArrowRight size={15}/></button></div>
+    <section className="workshop-takeaways"><h2>মনে রাখবে</h2><ul>{content.takeaways.map((item,i)=><li key={i}>{item}</li>)}</ul></section>
+  </main>
+}
