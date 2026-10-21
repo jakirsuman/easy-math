@@ -24,7 +24,7 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(screen.getByRole('button', { name: /উত্তর মিলিয়ে দেখি/ }))
     expect(screen.getByText(/ঠিক ধরেছ/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /পাঠ শেষ করো/ }))
-    expect(screen.getByText(/তুমি এই পাঠটি সম্পন্ন করেছ/)).toBeInTheDocument()
+    expect(screen.getByText(/এই পাঠ আগেই শেষ করেছ/)).toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('easy-math-progress-v1') || '{}').completedLessons).toContain('fraction-basics')
   })
 
