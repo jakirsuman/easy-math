@@ -59,7 +59,7 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
     const rounded = Number(v.toFixed(3))
     if (!Number.isInteger(rounded)) return bn(String(rounded))
     const digits = String(rounded)
-    const grouped = digits.length > 3 ? digits.slice(0,-3).replace(/\\B(?=(\\d{2})+(?!\\d))/g, ',') + ',' + digits.slice(-3) : digits
+    const grouped = digits.length > 3 ? digits.slice(0,-3).replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + digits.slice(-3) : digits
     return bn(grouped)
   }
   const expanded = placeRows.filter(row=>row.value!==0).map(row=>formatPlace(row.value*row.unit))
