@@ -9,9 +9,18 @@ type Props = {
 const bn = (n: number) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[Number(d)])
 
 export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, completed, onBack, onComplete, onPractice }: Props) {
+  const [crores, setCrores] = useState(0)
+  const [tenLakhs, setTenLakhs] = useState(0)
+  const [lakhs, setLakhs] = useState(0)
+  const [tenThousands, setTenThousands] = useState(0)
+  const [thousands, setThousands] = useState(0)
   const [hundreds, setHundreds] = useState(3)
   const [tens, setTens] = useState(4)
   const [ones, setOnes] = useState(2)
+  const [tenths, setTenths] = useState(0)
+  const [hundredths, setHundredths] = useState(0)
+  const [thousandths, setThousandths] = useState(0)
+  const [selectedPlace, setSelectedPlace] = useState(6)
   const [groups, setGroups] = useState(4)
   const [items, setItems] = useState(3)
   const [denominator, setDenominator] = useState(4)
@@ -20,26 +29,48 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
   const [submitted, setSubmitted] = useState(false)
   const [hintOpen, setHintOpen] = useState(false)
   useEffect(() => {
-    setHundreds(3); setTens(4); setOnes(2); setGroups(4); setItems(3)
-    setDenominator(4); setNumerator(3); setAnswer(''); setSubmitted(false); setHintOpen(false)
+    setCrores(0); setTenLakhs(0); setLakhs(0); setTenThousands(0); setThousands(0)
+    setHundreds(3); setTens(4); setOnes(2); setTenths(0); setHundredths(0); setThousandths(0); setSelectedPlace(6)
+    setGroups(4); setItems(3); setDenominator(4); setNumerator(3); setAnswer(''); setSubmitted(false); setHintOpen(false)
   }, [lessonId])
   const place = lessonId === 'place-value'
   const multiply = lessonId === 'multiplication-groups'
-  const number = hundreds * 100 + tens * 10 + ones
+  const placeRows = [
+    { label:'কোটি', value:crores, set:setCrores, unit:10000000, color:'large-place' },
+    { label:'দশ লক্ষ', value:tenLakhs, set:setTenLakhs, unit:1000000, color:'large-place' },
+    { label:'লক্ষ', value:lakhs, set:setLakhs, unit:100000, color:'large-place' },
+    { label:'দশ হাজার', value:tenThousands, set:setTenThousands, unit:10000, color:'large-place' },
+    { label:'হাজার', value:thousands, set:setThousands, unit:1000, color:'large-place' },
+    { label:'শতক', value:hundreds, set:setHundreds, unit:100, color:'hundreds' },
+    { label:'দশক', value:tens, set:setTens, unit:10, color:'tens' },
+    { label:'একক', value:ones, set:setOnes, unit:1, color:'ones' },
+    { label:'দশমাংশ', value:tenths, set:setTenths, unit:0.1, color:'decimal-place' },
+    { label:'শতাংশ', value:hundredths, set:setHundredths, unit:0.01, color:'decimal-place' },
+    { label:'সহস্রাংশ', value:thousandths, set:setThousandths, unit:0.001, color:'decimal-place' },
+  ]
+  const digitString = [crores,tenLakhs,lakhs,tenThousands,thousands,hundreds,tens,ones].join('').replace(/^0+(?=\\d)/,'')
+  const groupedWhole = digitString.length > 3 ? digitString.slice(0,-3).replace(/\\B(?=(\\d{2})+(?!\\d))/g, ',') + ',' + digitString.slice(-3) : digitString
+  const decimalString = [tenths,hundredths,thousandths].join('')
+  const displayNumber = bn(groupedWhole || '0') + (tenths || hundredths || thousandths ? '.' + bn(decimalString) : '')
+  const number = Number(digitString || 0) + tenths/10 + hundredths/100 + thousandths/1000
+  const selectedRow = placeRows[selectedPlace]
+  const selectedValue = selectedRow.value * selectedRow.unit
+  const formatPlace = (v:number) => bn(Number(v.toFixed(3)))
+  const expanded = placeRows.filter(row=>row.value!==0).map(row=>formatPlace(row.value*row.unit))
   const product = groups * items
-  const correct = place ? bn(tens * 10) : multiply ? bn(product) : bn(numerator) + '/' + bn(denominator)
+  const correct = place ? formatPlace(selectedValue) : multiply ? bn(product) : bn(numerator) + '/' + bn(denominator)
   const question = place
-    ? 'সংখ্যা ' + bn(number) + '-এ দশকের ঘরে ' + bn(tens) + ' আছে। এই অঙ্কটির মান কত?'
+    ? 'সংখ্যা ' + displayNumber + '-এ ' + selectedRow.label + ' ঘরে ' + bn(selectedRow.value) + ' আছে। এই অঙ্কটির স্থানীয় মান কত?'
     : multiply ? bn(groups) + 'টি সমান দলে প্রতিটিতে ' + bn(items) + 'টি করে আছে। মোট কয়টি?'
     : 'পুরোটা ' + bn(denominator) + 'টি সমান ভাগে ভাগ করা। ' + bn(numerator) + 'টি ভাগ রঙ করা—কোন ভগ্নাংশটি দেখাচ্ছে?'
-  const rawOptions = place ? [bn(tens), bn(tens * 10), bn(tens * 100), bn(number)]
+  const rawOptions = place ? [formatPlace(selectedRow.value),formatPlace(selectedValue),formatPlace(selectedValue*10),formatPlace(number)]
     : multiply ? [bn(product), bn(groups + items), bn(groups * Math.max(1, items - 1)), bn(product + groups)]
     : [bn(numerator) + '/' + bn(denominator), bn(denominator - numerator) + '/' + bn(denominator), bn(numerator) + '/' + bn(denominator + 1), '১/২', '২/৩', '৩/৪', '১/৪']
   const uniqueOptions = Array.from(new Set(rawOptions))
   const options = uniqueOptions.length >= 4 ? uniqueOptions.slice(0, 4) : Array.from(new Set([...uniqueOptions, '২/৩', '৩/৪', '১/৪', '১/৩'])).slice(0, 4)
   const right = answer === correct
   const explanation = place
-    ? bn(tens) + ' দশক মানে ' + bn(tens) + 'টি দশ। তাই ' + bn(tens) + ' × ১০ = ' + bn(tens * 10) + '। অঙ্কটি শুধু ' + bn(tens) + ' নয়—ঘর তার মান বদলে দেয়।'
+    ? bn(selectedRow.value) + ' ' + selectedRow.label + ' মানে ' + bn(selectedRow.value) + ' × ' + formatPlace(selectedRow.unit) + ' = ' + formatPlace(selectedValue) + '। অঙ্কটির মান নির্ভর করে এটি কোন ঘরে আছে তার ওপর।'
     : multiply ? bn(groups) + 'টি দলে ' + bn(items) + 'টি করে: ' + Array.from({length:groups}, () => bn(items)).join(' + ') + ' = ' + bn(product) + '। তাই ' + bn(groups) + ' × ' + bn(items) + ' = ' + bn(product) + '।'
     : bn(denominator) + 'টি সমান ভাগের মধ্যে ' + bn(numerator) + 'টি নেওয়া হয়েছে। হর মোট ভাগ, লব নেওয়া ভাগ—তাই ভগ্নাংশ ' + correct + '।'
   return <div className="page-content discovery-page">
@@ -50,9 +81,14 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
     <section className="discovery-card">
       <div className="discovery-card-top"><span className="discovery-step">১</span><div><h2>{place ? 'সংখ্যাটাকে খুলে দেখি' : multiply ? 'নিজের মতো দল সাজাও' : 'ভাগগুলো রঙ করে দেখি'}</h2><p>নিয়ন্ত্রণগুলো বদলাও—চিত্র ও হিসাব একসঙ্গে বদলাবে।</p></div></div>
       {place && <>
-        <div className="place-number"><span>{bn(number)}</span><small>{bn(hundreds * 100)} + {bn(tens * 10)} + {bn(ones)}</small></div>
-        <div className="place-columns">{[{label:'শতকের ঘর',value:hundreds,set:setHundreds,place:100,color:'hundreds'},{label:'দশকের ঘর',value:tens,set:setTens,place:10,color:'tens'},{label:'এককের ঘর',value:ones,set:setOnes,place:1,color:'ones'}].map((col) => <div className={'place-column ' + col.color} key={col.label}><strong>{col.label}</strong><div className="place-blocks">{Array.from({length:col.value},(_,i)=><span key={i}>{col.place===100?'▰':col.place===10?'▥':'▪'}</span>)}</div><label>{bn(col.value)} × {bn(col.place)} = <b>{bn(col.value * col.place)}</b></label><input aria-label={col.label} type="range" min="0" max="9" value={col.value} onChange={(e)=>col.set(Number(e.target.value))}/></div>)}</div>
-        <div className="discovery-insight"><Lightbulb size={19}/><p><strong>খেয়াল করো:</strong> {bn(tens)} অঙ্কটি দশকের ঘরে আছে, তাই এটি {bn(tens * 10)} বোঝায়।</p></div>
+        <div className="place-number"><span>{displayNumber}</span><small>{expanded.length ? expanded.join(' + ') : '০'}</small></div>
+        <div className="place-value-groups">
+          <h3>পূর্ণ সংখ্যার স্থানীয় মান</h3>
+          <div className="place-columns">{placeRows.slice(0,8).map((col) => <div className={'place-column ' + col.color} key={col.label}><strong>{col.label}</strong><div className="place-blocks"><span>{bn(col.value)}</span></div><label>{bn(col.value)} × {formatPlace(col.unit)} = <b>{formatPlace(col.value * col.unit)}</b></label><input aria-label={col.label} type="range" min="0" max="9" value={col.value} onChange={(e)=>col.set(Number(e.target.value))}/></div>)}</div>
+          <h3>দশমিকের পরের স্থানীয় মান</h3>
+          <div className="place-columns decimal-columns">{placeRows.slice(8).map((col) => <div className={'place-column ' + col.color} key={col.label}><strong>{col.label}</strong><div className="place-blocks"><span>{bn(col.value)}</span></div><label>{bn(col.value)} × {formatPlace(col.unit)} = <b>{formatPlace(col.value * col.unit)}</b></label><input aria-label={col.label} type="range" min="0" max="9" value={col.value} onChange={(e)=>col.set(Number(e.target.value))}/></div>)}</div>
+        </div>
+        <div className="discovery-insight"><Lightbulb size={19}/><p><strong>খেয়াল করো:</strong> একই অঙ্কের স্থান বদলালে মান ১০ গুণ বাড়তে বা কমতে পারে। দশমিকের ডানে গেলে স্থানীয় মান হয় ০.১, ০.০১, ০.০০১—অর্থাৎ এককের দশমাংশ, শতাংশ ও সহস্রাংশ।</p></div>
       </>}
       {multiply && <>
         <div className="group-controls"><label>কতটি দল? <strong>{bn(groups)}টি</strong><input aria-label="দলের সংখ্যা" type="range" min="2" max="6" value={groups} onChange={(e)=>setGroups(Number(e.target.value))}/></label><label>প্রতি দলে কতটি? <strong>{bn(items)}টি</strong><input aria-label="প্রতি দলে জিনিসের সংখ্যা" type="range" min="2" max="5" value={items} onChange={(e)=>setItems(Number(e.target.value))}/></label></div>
@@ -68,7 +104,7 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
       </>}
     </section>
     <section className="discovery-card"><div className="discovery-card-top"><span className="discovery-step">২</span><div><h2>এবার তুমি ভেবে বলো</h2><p>ভুল হলেও সমস্যা নেই—ব্যাখ্যা দেখে আবার চেষ্টা করা যাবে।</p></div></div>
-      <div className="discovery-question"><span>তোমার চ্যালেঞ্জ</span><h3>{question}</h3><div className="discovery-options">{options.map((option)=><button type="button" key={option} disabled={submitted} className={(answer===option?'chosen ':'')+(submitted&&option===correct?'right ':'')+(submitted&&answer===option&&!right?'wrong':'')} onClick={()=>setAnswer(option)}>{option}{submitted&&option===correct&&<Check size={17}/>}</button>)}</div>
+      <div className="discovery-question"><span>তোমার চ্যালেঞ্জ</span>{place&&<label className="place-question-select">কোন ঘরের স্থানীয় মান যাচাই করবে? <select aria-label="যে ঘরের মান যাচাই করবে" value={selectedPlace} onChange={e=>{setSelectedPlace(Number(e.target.value));setAnswer('');setSubmitted(false)}}>{placeRows.map((row,i)=><option value={i} key={row.label}>{row.label}</option>)}</select></label>}<h3>{question}</h3><div className="discovery-options">{options.map((option)=><button type="button" key={option} disabled={submitted} className={(answer===option?'chosen ':'')+(submitted&&option===correct?'right ':'')+(submitted&&answer===option&&!right?'wrong':'')} onClick={()=>setAnswer(option)}>{option}{submitted&&option===correct&&<Check size={17}/>}</button>)}</div>
         {!submitted ? <button className="button-primary" disabled={!answer} onClick={()=>setSubmitted(true)}>উত্তর মিলিয়ে দেখি <ArrowRight size={16}/></button> : <div className={'discovery-feedback '+(right?'success':'retry')}><strong>{right?'ঠিক ধরেছ! এবার কারণটাও বুঝে নাও।':'আরেকবার ভাবো—চিত্রের সঙ্গে মিলিয়ে দেখো।'}</strong><p>{explanation}</p>{!right&&<button className="text-link" onClick={()=>{setAnswer('');setSubmitted(false)}}><RotateCcw size={14}/> আবার চেষ্টা করো</button>}</div>}
       </div>
     </section>
