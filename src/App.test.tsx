@@ -146,6 +146,20 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByText(/৪ দশক মানে ৪টি দশ/)).toBeInTheDocument()
   })
 
+  it('shows place values from crore through thousandths', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'সংখ্যার স্থানীয় মান খুলুন' }))
+    for (const label of ['কোটি', 'দশ লক্ষ', 'লক্ষ', 'দশ হাজার', 'হাজার', 'শতক', 'দশক', 'একক', 'দশমাংশ', 'শতাংশ', 'সহস্রাংশ']) {
+      expect(screen.getByLabelText(label)).toBeInTheDocument()
+    }
+    expect(screen.getByText('দশমিকের পরের স্থানীয় মান')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('কোটি'), { target: { value: '2' } })
+    fireEvent.change(screen.getByLabelText('যে ঘরের মান যাচাই করবে'), { target: { value: '0' } })
+    expect(screen.getByText(/কোটি ঘরে/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '২০০০০০০০' })).toBeInTheDocument()
+  })
+
   it('teaches multiplication as equal groups with a visual model', () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
