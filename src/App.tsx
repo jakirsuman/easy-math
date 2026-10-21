@@ -10,6 +10,7 @@ import type { AgeBand, LearningPath } from './data/curriculum'
 import { areEquivalentFractions } from './math/fractions'
 import { lessonContent } from './data/lessonContent'
 import { DiscoveryLesson } from './components/DiscoveryLesson'
+import { LessonWorkshop } from './components/LessonWorkshop'
 
 type View = 'home' | 'learn' | 'lesson' | 'practice' | 'lab' | 'progress'
 type StoredProgress = { xp: number; completedLessons: string[]; correctAnswers: number; attempts: number; streak: number }
@@ -233,70 +234,14 @@ function LearnView({ completed, onOpenLesson }: { completed: string[]; onOpenLes
 }
 
 function LessonView({ lessonId, path, completed, onBack, onComplete, onPractice }: { lessonId: string; path: LearningPath; completed: boolean; onBack: () => void; onComplete: () => void; onPractice: () => void }) {
-  const [numerator, setNumerator] = useState(1)
-  const [denominator, setDenominator] = useState(2)
-  const [showHint, setShowHint] = useState(false)
-  const [checked, setChecked] = useState(false)
-  const [selectedAnswer, setSelectedAnswer] = useState('')
-  const [answerSubmitted, setAnswerSubmitted] = useState(false)
   const lesson = path.lessons.find((item) => item.id === lessonId)
   const content = lessonContent[lessonId] ?? lessonContent['fraction-basics']
-  const isFractionModel = ['fraction-basics', 'equivalent-fractions', 'fraction-practice', 'fraction-addition'].includes(lessonId)
-  const isCorrect = selectedAnswer === content.answer
-
-  useEffect(() => {
-    setNumerator(1)
-    setDenominator(2)
-    setShowHint(false)
-    setChecked(false)
-    setSelectedAnswer('')
-    setAnswerSubmitted(false)
-  }, [lessonId])
 
   if (['place-value', 'multiplication-groups', 'fraction-basics'].includes(lessonId)) {
     return <DiscoveryLesson lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} />
   }
 
-  return <div className="page-content lesson-page">
-    <button className="back-link" onClick={onBack}><ArrowLeft size={16} /> শেখার পথে ফিরে যাও</button>
-    <div className="lesson-topline"><span className="lesson-tag">{path.title}</span><span className="lesson-age-chip">{ageBandLabels[lesson?.ageBand ?? '8-9']}</span><span><Clock3 size={14} /> {lesson?.duration ?? '৮ মিনিট'}</span><span>ধাপে ধাপে শেখা</span></div>
-    <h1 className="lesson-title">{lesson?.title ?? 'গণিতের পাঠ'}</h1>
-    <p className="lesson-lead">{lesson?.objective ?? content.concept}</p>
-    <div className="lesson-layout">
-      <article className="lesson-main-card">
-        <div className="lesson-section-title"><span className="step-number">১</span><div><h2>ধারণাটি বুঝি</h2><p>প্রথমে অর্থ বোঝো, তারপর সূত্র ব্যবহার করো</p></div></div>
-        <p className="lesson-paragraph">{content.concept}</p>
-        {isFractionModel && <FractionVisualizer numerator={numerator} denominator={denominator} onNumeratorChange={(n) => setNumerator(Math.min(n, denominator))} onDenominatorChange={(d) => { setDenominator(d); setNumerator((n) => Math.min(n, d)) }} />}
-        <div className="lesson-section-title second-step"><span className="step-number">২</span><div><h2>{content.exampleTitle}</h2><p>ধাপে ধাপে একটি উদাহরণ</p></div></div>
-        <div className="guided-example"><div className="guided-example-mark"><Sparkles size={18} /></div><div><strong>উদাহরণ</strong><p>{content.example}</p></div></div>
-        <div className="guided-steps">{content.steps.map((step, index) => <div className="guided-step" key={step}><span>{index + 1}</span><p>{step}</p></div>)}</div>
-        <div className="lesson-tip"><Lightbulb size={19} /><p><strong>যে ভুলটি এড়াবে:</strong> {content.mistake}</p></div>
-        <div className="lesson-section-title second-step"><span className="step-number">৩</span><div><h2>এবার নিজে যাচাই করো</h2><p>উত্তর বেছে নিয়ে ব্যাখ্যা দেখো</p></div></div>
-        <div className="lesson-check-card">
-          <div className="lesson-check-label"><CircleHelp size={17} /><span>দ্রুত যাচাই</span></div>
-          <h3>{content.question}</h3>
-          <div className="lesson-check-options">{content.options.map((option) => <button key={option} disabled={answerSubmitted} className={`lesson-check-option ${selectedAnswer === option ? 'lesson-check-selected' : ''} ${answerSubmitted && option === content.answer ? 'lesson-check-correct' : ''} ${answerSubmitted && selectedAnswer === option && !isCorrect ? 'lesson-check-wrong' : ''}`} onClick={() => setSelectedAnswer(option)}>{option}{answerSubmitted && option === content.answer && <Check size={16} />}</button>)}</div>
-          {!answerSubmitted ? <button className="button-primary lesson-check-submit" disabled={!selectedAnswer} onClick={() => setAnswerSubmitted(true)}>উত্তর যাচাই <ArrowRight size={16} /></button> : <div className={`lesson-answer-feedback ${isCorrect ? 'lesson-answer-right' : 'lesson-answer-review'}`}><strong>{isCorrect ? 'সঠিক উত্তর!' : `সঠিক উত্তর: ${content.answer}`}</strong><p>{content.explanation}</p><button className="text-link" onClick={() => { setSelectedAnswer(''); setAnswerSubmitted(false) }}><RotateCcw size={14} /> আবার চেষ্টা করো</button></div>}
-        </div>
-        <div className="takeaway-card"><h3><Check size={17} /> মনে রাখার ৩টি বিষয়</h3><ul>{content.takeaways.map((item) => <li key={item}>{item}</li>)}</ul></div>
-        {showHint && <div className="hint-panel"><strong>ছোট্ট ইঙ্গিত</strong><p>{content.hint}</p></div>}
-        <div className="lesson-actions"><button className="button-secondary" onClick={() => setShowHint((show) => !show)}><Lightbulb size={16} /> {showHint ? 'ইঙ্গিত লুকাও' : 'ইঙ্গিত দেখো'}</button><button className="button-primary" onClick={() => { setChecked(true); onComplete() }}>{completed || checked ? 'পাঠ সম্পন্ন' : 'পাঠ শেষ করো'} <Check size={16} /></button></div>
-        {checked && <div className="success-note"><Check size={17} /> ভালো! তুমি এই পাঠটি সম্পন্ন করেছ। এবার অনুশীলন করে দেখো।</div>}
-        <button className="practice-banner" onClick={onPractice}><div><strong>এবার নিজে চেষ্টা করো</strong><span>বিভিন্ন ধরনের প্রশ্নে শেখা যাচাই করো</span></div><span className="practice-banner-arrow"><ArrowRight size={18} /></span></button>
-      </article>
-      <aside className="lesson-side-card"><div className="side-card-heading"><Target size={18} /><strong>এই পাঠে শিখবে</strong></div><ul>{content.takeaways.map((item) => <li key={item}><Check size={15} /> {item}</li>)}</ul><div className="side-progress"><div className="side-progress-label"><span>পাঠের অগ্রগতি</span><strong>{checked || completed ? '১০০%' : answerSubmitted ? '৮০%' : '৩৩%'}</strong></div><div className="progress-track"><div style={{ width: checked || completed ? '100%' : answerSubmitted ? '80%' : '33%' }} /></div></div><div className="side-encouragement"><Sparkles size={18} /><span>তাড়াহুড়ো নয়—বুঝে শেখাই আসল।</span></div></aside>
-    </div>
-  </div>
-}
-
-function FractionVisualizer({ numerator, denominator, onNumeratorChange, onDenominatorChange }: { numerator: number; denominator: number; onNumeratorChange: (n: number) => void; onDenominatorChange: (d: number) => void }) {
-  const parts = Array.from({ length: denominator }, (_, index) => index < numerator)
-  return <div className="visualizer-card">
-    <div className="visualizer-header"><div><span className="visualizer-label">ইন্টার‍্যাক্টিভ ম্যাথ ল্যাব</span><h3>নিজে ভাগ করে দেখো</h3></div><span className="lab-pill"><Sparkles size={13} /> চেষ্টা করো</span></div>
-    <div className="fraction-display"><div className="fraction-wheel" role="img" aria-label={`${denominator} ভাগের মধ্যে ${numerator} ভাগ রঙ করা`} style={{ background: `conic-gradient(#0B58FC 0deg ${numerator / denominator * 360}deg, #dbe8ff ${numerator / denominator * 360}deg 360deg)` }}><div className="wheel-center"><strong>{numerator}/{denominator}</strong><span>ভগ্নাংশ</span></div></div><div className="fraction-meaning"><span className="meaning-label">রঙ করা অংশ</span><strong>{numerator} / {denominator}</strong><p>মোট {denominator}টি সমান অংশের মধ্যে {numerator}টি অংশ রঙ করা হয়েছে।</p><div className="meaning-legend"><span /><small>রঙ করা অংশ</small><span className="legend-empty" /><small>বাকি অংশ</small></div></div></div>
-    <div className="visual-controls"><label><span>কতটি অংশ নেবে? <strong>{numerator}</strong></span><input aria-label="লব" type="range" min="1" max={denominator} value={numerator} onChange={(event) => onNumeratorChange(Number(event.target.value))} /></label><label><span>মোট সমান অংশ <strong>{denominator}</strong></span><input aria-label="হর" type="range" min="2" max="8" value={denominator} onChange={(event) => onDenominatorChange(Number(event.target.value))} /></label></div>
-    <div className="fraction-segments" aria-label="সমান অংশের দৃশ্য"><div className="segment-label">প্রতিটি অংশ</div><div className="segments-row">{parts.map((filled, index) => <div key={index} className={`segment ${filled ? 'segment-filled' : ''}`}><span>{index + 1}</span></div>)}</div></div>
-  </div>
+  return <LessonWorkshop lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} content={content} />
 }
 
 function PracticeView({ onRecord, onFinish }: { onRecord: (correct: boolean) => void; onFinish: () => void }) {
