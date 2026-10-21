@@ -9,6 +9,7 @@ import { practiceQuestions } from './data/expandedQuestions'
 import type { AgeBand, LearningPath } from './data/curriculum'
 import { areEquivalentFractions } from './math/fractions'
 import { lessonContent } from './data/lessonContent'
+import { DiscoveryLesson } from './components/DiscoveryLesson'
 
 type View = 'home' | 'learn' | 'lesson' | 'practice' | 'lab' | 'progress'
 type StoredProgress = { xp: number; completedLessons: string[]; correctAnswers: number; attempts: number; streak: number }
@@ -251,6 +252,10 @@ function LessonView({ lessonId, path, completed, onBack, onComplete, onPractice 
     setSelectedAnswer('')
     setAnswerSubmitted(false)
   }, [lessonId])
+
+  if (['place-value', 'multiplication-groups', 'fraction-basics'].includes(lessonId)) {
+    return <DiscoveryLesson lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} />
+  }
 
   return <div className="page-content lesson-page">
     <button className="back-link" onClick={onBack}><ArrowLeft size={16} /> শেখার পথে ফিরে যাও</button>
