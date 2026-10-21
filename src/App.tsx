@@ -234,41 +234,14 @@ function LearnView({ completed, onOpenLesson }: { completed: string[]; onOpenLes
 }
 
 function LessonView({ lessonId, path, completed, onBack, onComplete, onPractice }: { lessonId: string; path: LearningPath; completed: boolean; onBack: () => void; onComplete: () => void; onPractice: () => void }) {
-  const [numerator, setNumerator] = useState(1)
-  const [denominator, setDenominator] = useState(2)
-  const [showHint, setShowHint] = useState(false)
-  const [checked, setChecked] = useState(false)
-  const [selectedAnswer, setSelectedAnswer] = useState('')
-  const [answerSubmitted, setAnswerSubmitted] = useState(false)
   const lesson = path.lessons.find((item) => item.id === lessonId)
   const content = lessonContent[lessonId] ?? lessonContent['fraction-basics']
-  const isFractionModel = ['fraction-basics', 'equivalent-fractions', 'fraction-practice', 'fraction-addition'].includes(lessonId)
-  const isCorrect = selectedAnswer === content.answer
-
-  useEffect(() => {
-    setNumerator(1)
-    setDenominator(2)
-    setShowHint(false)
-    setChecked(false)
-    setSelectedAnswer('')
-    setAnswerSubmitted(false)
-  }, [lessonId])
 
   if (['place-value', 'multiplication-groups', 'fraction-basics'].includes(lessonId)) {
     return <DiscoveryLesson lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} />
   }
 
   return <LessonWorkshop lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} content={content} />
-}
-
-function FractionVisualizer({ numerator, denominator, onNumeratorChange, onDenominatorChange }: { numerator: number; denominator: number; onNumeratorChange: (n: number) => void; onDenominatorChange: (d: number) => void }) {
-  const parts = Array.from({ length: denominator }, (_, index) => index < numerator)
-  return <div className="visualizer-card">
-    <div className="visualizer-header"><div><span className="visualizer-label">ইন্টার‍্যাক্টিভ ম্যাথ ল্যাব</span><h3>নিজে ভাগ করে দেখো</h3></div><span className="lab-pill"><Sparkles size={13} /> চেষ্টা করো</span></div>
-    <div className="fraction-display"><div className="fraction-wheel" role="img" aria-label={`${denominator} ভাগের মধ্যে ${numerator} ভাগ রঙ করা`} style={{ background: `conic-gradient(#0B58FC 0deg ${numerator / denominator * 360}deg, #dbe8ff ${numerator / denominator * 360}deg 360deg)` }}><div className="wheel-center"><strong>{numerator}/{denominator}</strong><span>ভগ্নাংশ</span></div></div><div className="fraction-meaning"><span className="meaning-label">রঙ করা অংশ</span><strong>{numerator} / {denominator}</strong><p>মোট {denominator}টি সমান অংশের মধ্যে {numerator}টি অংশ রঙ করা হয়েছে।</p><div className="meaning-legend"><span /><small>রঙ করা অংশ</small><span className="legend-empty" /><small>বাকি অংশ</small></div></div></div>
-    <div className="visual-controls"><label><span>কতটি অংশ নেবে? <strong>{numerator}</strong></span><input aria-label="লব" type="range" min="1" max={denominator} value={numerator} onChange={(event) => onNumeratorChange(Number(event.target.value))} /></label><label><span>মোট সমান অংশ <strong>{denominator}</strong></span><input aria-label="হর" type="range" min="2" max="8" value={denominator} onChange={(event) => onDenominatorChange(Number(event.target.value))} /></label></div>
-    <div className="fraction-segments" aria-label="সমান অংশের দৃশ্য"><div className="segment-label">প্রতিটি অংশ</div><div className="segments-row">{parts.map((filled, index) => <div key={index} className={`segment ${filled ? 'segment-filled' : ''}`}><span>{index + 1}</span></div>)}</div></div>
-  </div>
 }
 
 function PracticeView({ onRecord, onFinish }: { onRecord: (correct: boolean) => void; onFinish: () => void }) {
