@@ -293,6 +293,18 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByRole('button', { name: /পাঠ শেষ করো/ })).toBeEnabled()
   })
 
+  it('rotates supplementary questions after a successful spaced-review cycle', () => {
+    const base = lessonContent['decimals']
+    const first = getLessonAssessment('decimals', base, 0)
+    const second = getLessonAssessment('decimals', base, 1)
+    expect(first).toHaveLength(6)
+    expect(second).toHaveLength(6)
+    expect(first[0].prompt).toBe(second[0].prompt)
+    expect(first.slice(1, 4).map((question) => question.prompt)).not.toEqual(second.slice(1, 4).map((question) => question.prompt))
+    expect(first[4].prompt).toBe(second[4].prompt)
+    expect(first[5].correctOrder).toEqual(second[5].correctOrder)
+  })
+
   it('accepts Bengali or English numerals and optional units in typed answers', () => {
     const question = getLessonAssessment('unit-conversion', lessonContent['unit-conversion']).find((item) => item.type === 'short-answer')!
     expect(isLessonAnswerCorrect(question, '240 সেমি')).toBe(true)
