@@ -176,7 +176,7 @@ function App() {
 
         {view === 'home' && <HomeView progress={progress} completedCount={completedCount} onNavigate={navigate} onOpenLesson={openLesson} />}
         {view === 'learn' && <LearnView completed={progress.completedLessons} onOpenLesson={openLesson} />}
-        {view === 'lesson' && <LessonView lessonId={activeLesson} path={activePath} completed={progress.completedLessons.includes(activeLesson)} reviewMode={activeLessonReview} onBack={() => navigate('learn')} onComplete={() => activeLessonReview ? completeReview(activeLesson) : completeLesson(activeLesson)} onPractice={() => navigate('practice')} />}
+        {view === 'lesson' && <LessonView lessonId={activeLesson} path={activePath} completed={progress.completedLessons.includes(activeLesson)} reviewMode={activeLessonReview} reviewVariant={progress.reviewSchedule[activeLesson]?.completedReviews ?? 0} onBack={() => navigate('learn')} onComplete={() => activeLessonReview ? completeReview(activeLesson) : completeLesson(activeLesson)} onPractice={() => navigate('practice')} />}
         {view === 'practice' && <PracticeView onRecord={recordAnswer} onFinish={() => navigate('progress')} />}
         {view === 'lab' && <LabView />}
         {view === 'progress' && <ProgressView progress={progress} completedCount={completedCount} totalLessons={totalLessons} onReset={() => { setProgress(defaultProgress); localStorage.removeItem(STORAGE_KEY) }} />}
