@@ -1,10 +1,13 @@
 import { practiceQuestions } from './expandedQuestions'
+import { lessonTeachingNotes } from './lessonTeachingNotes'
 
 export type LessonAssessmentQuestion = {
   id: string
   prompt: string
-  type?: 'choice' | 'short-answer'
+  type?: 'choice' | 'short-answer' | 'ordered-steps'
   options?: readonly string[]
+  steps?: readonly string[]
+  correctOrder?: readonly string[]
   answer: string
   acceptableAnswers?: readonly string[]
   explanation: string
@@ -179,5 +182,15 @@ export function getLessonAssessment(lessonId: string, base: BaseQuestion): Lesso
 
   const core: LessonAssessmentQuestion = { id: `${lessonId}-core`, type: 'choice', prompt: base.question, options: base.options, answer: base.answer, explanation: base.explanation }
   const constructedResponse = applicationQuestions[lessonId]
-  return [core, ...unique, ...(constructedResponse ? [constructedResponse] : [])]
+  const note = lessonTeachingNotes[lessonId]
+  const orderedSteps: LessonAssessmentQuestion | undefined = note ? {
+    id: `${lessonId}-order-steps`,
+    type: 'ordered-steps',
+    prompt: 'সমাধানের ধাপগুলো সঠিক ক্রমে সাজাও। উপরে/নিচে বোতাম ব্যবহার করো।',
+    steps: [...note.workedSteps].reverse(),
+    correctOrder: [...note.workedSteps],
+    answer: [...note.workedSteps].join('|'),
+    explanation: 'সমাধানের ধাপ সাজানোর সময় আগের ধাপের ফল পরের ধাপে ব্যবহার হয়। সঠিক ক্রমে সাজিয়ে প্রতিটি ধাপের কারণও বোঝার চেষ্টা করো.',
+  } : undefined
+  return [core, ...unique, ...(constructedResponse ? [constructedResponse] : []), ...(orderedSteps ? [orderedSteps] : [])]
 }
