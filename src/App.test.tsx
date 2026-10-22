@@ -335,11 +335,14 @@ describe('Easy Math learning flow', () => {
   it('accepts equivalent fraction and decimal forms in typed mastery answers', () => {
     const fraction = getLessonAssessment('equivalent-fractions', lessonContent['equivalent-fractions']).find((item) => item.type === 'short-answer')!
     expect(isLessonAnswerCorrect(fraction, '৪/৬')).toBe(true)
-    expect(isLessonAnswerCorrect(fraction, '0.6666666667')).toBe(false)
+    expect(isLessonAnswerCorrect(fraction, '0.67')).toBe(false)
     const decimalFraction = getLessonAssessment('decimals', lessonContent.decimals).find((item) => item.type === 'short-answer')!
     expect(isLessonAnswerCorrect(decimalFraction, '0.75')).toBe(true)
     expect(isLessonAnswerCorrect(decimalFraction, '০.৭৫')).toBe(true)
     expect(isLessonAnswerCorrect(decimalFraction, '0.74')).toBe(false)
+    const ratio = getLessonAssessment('ratio', lessonContent.ratio).find((item) => item.type === 'short-answer')!
+    expect(isLessonAnswerCorrect(ratio, '৪:৬')).toBe(true)
+    expect(isLessonAnswerCorrect(ratio, '৪:৭')).toBe(false)
   })
   it('schedules spaced reviews after one day, then three, seven and fourteen days', () => {
     const day = 24 * 60 * 60 * 1000
