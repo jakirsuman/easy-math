@@ -148,8 +148,8 @@ function equivalentMathAnswer(expected: string, response: string): boolean {
   const right = normalizeLessonAnswer(response)
   if (left === right) return true
   if (left.includes(':') || right.includes(':')) {
-    const leftRatio = left.match(/^([+-]?\\d+):([+-]?\\d+)$/)
-    const rightRatio = right.match(/^([+-]?\\d+):([+-]?\\d+)$/)
+    const leftRatio = left.match(/^([+-]?\d+):([+-]?\d+)$/)
+    const rightRatio = right.match(/^([+-]?\d+):([+-]?\d+)$/)
     if (!leftRatio || !rightRatio || Number(leftRatio[2]) === 0 || Number(rightRatio[2]) === 0) return false
     return Number(leftRatio[1]) * Number(rightRatio[2]) === Number(rightRatio[1]) * Number(leftRatio[2])
   }
