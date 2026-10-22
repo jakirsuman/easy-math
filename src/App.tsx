@@ -276,15 +276,15 @@ function LearnView({ completed, onOpenLesson }: { completed: string[]; onOpenLes
   </div>
 }
 
-function LessonView({ lessonId, path, completed, reviewMode, onBack, onComplete, onPractice }: { lessonId: string; path: LearningPath; completed: boolean; reviewMode: boolean; onBack: () => void; onComplete: () => void; onPractice: () => void }) {
+function LessonView({ lessonId, path, completed, reviewMode, reviewVariant, onBack, onComplete, onPractice }: { lessonId: string; path: LearningPath; completed: boolean; reviewMode: boolean; reviewVariant: number; onBack: () => void; onComplete: () => void; onPractice: () => void }) {
   const lesson = path.lessons.find((item) => item.id === lessonId)
   const content = lessonContent[lessonId] ?? lessonContent['fraction-basics']
 
   if (['place-value', 'multiplication-groups', 'fraction-basics'].includes(lessonId)) {
-    return <DiscoveryLesson lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} reviewMode={reviewMode} />
+    return <DiscoveryLesson lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} reviewMode={reviewMode} reviewVariant={reviewVariant} />
   }
 
-  return <LessonWorkshop lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} content={content} reviewMode={reviewMode} />
+  return <LessonWorkshop lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} content={content} reviewMode={reviewMode} reviewVariant={reviewVariant} />
 }
 
 function PracticeView({ onRecord, onFinish }: { onRecord: (correct: boolean) => void; onFinish: () => void }) {
