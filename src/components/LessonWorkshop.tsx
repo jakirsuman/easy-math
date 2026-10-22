@@ -11,6 +11,7 @@ type Props = {
   pathTitle: string
   ageLabel: string
   completed: boolean
+  reviewMode?: boolean
   content: GuidedLessonContent
   onBack: () => void
   onComplete: () => void
@@ -131,7 +132,7 @@ export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed
       </div>}
       {assessmentFinished&&<div className={'mastery-result '+(hasMastered?'mastery-pass':'mastery-retry')}><strong>{hasMastered?'পাঠের প্রাথমিক দক্ষতা যাচাই পাস':'আরও অনুশীলন দরকার'}</strong><p>প্রথম চেষ্টায় {bn(assessmentScore)} / {bn(assessmentQuestions.length)}টি সঠিক। পাস করতে অন্তত {bn(passMark)}টি সঠিক দরকার। {hasMastered?'এখন নতুন পরিস্থিতিতে এই ধারণা ব্যবহার করার অনুশীলন চালিয়ে যাও।':'যে প্রশ্নগুলো ভুল হয়েছে, সেগুলোর ব্যাখ্যা আবার পড়ে পুনরায় যাচাই দাও।'}</p>{!hasMastered&&<button className="button-secondary" onClick={()=>{setAssessmentIndex(0);setAssessmentAnswers({});setOrderedStepsByQuestion({});setSubmittedQuestionIds([]);setFirstAttemptCorrect({});setAssessmentFinished(false)}}><RotateCcw size={15}/> আবার যাচাই দাও</button>}</div>}
     </section>
-    {assessmentFinished&&<section className="workshop-finish"><div><strong>{hasMastered?(completed?'এই পাঠ আগেই সম্পন্ন করেছ।':'এই পাঠের প্রাথমিক লক্ষ্য পূরণ হয়েছে।'):'পাঠটি এখনো সম্পন্ন হয়নি।'}</strong><p>{hasMastered?'কমপক্ষে ৮০% প্রশ্ন প্রথম চেষ্টায় সঠিক হয়েছে।':'পাসের নম্বর পেলে পাঠ সম্পন্ন করা যাবে। ভুল উত্তরের ব্যাখ্যা দেখে আবার চেষ্টা করো।'}</p></div><button className="button-primary" disabled={!hasMastered} onClick={onComplete}>{completed?'পাঠ সম্পন্ন':'পাঠ শেষ করো'} <Check size={16}/></button></section>}
+    {assessmentFinished&&<section className="workshop-finish"><div><strong>{hasMastered?(completed?'এই পাঠ আগেই সম্পন্ন করেছ।':'এই পাঠের প্রাথমিক লক্ষ্য পূরণ হয়েছে।'):'পাঠটি এখনো সম্পন্ন হয়নি।'}</strong><p>{hasMastered?'কমপক্ষে ৮০% প্রশ্ন প্রথম চেষ্টায় সঠিক হয়েছে।':'পাসের নম্বর পেলে পাঠ সম্পন্ন করা যাবে। ভুল উত্তরের ব্যাখ্যা দেখে আবার চেষ্টা করো।'}</p></div><button className="button-primary" disabled={!hasMastered} onClick={onComplete}>{reviewMode?'পুনরাবৃত্তি শেষ':completed?'পাঠ সম্পন্ন':'পাঠ শেষ করো'} <Check size={16}/></button></section>}
     {hintOpen&&<div className="workshop-hint"><Lightbulb size={18}/><span>{content.hint}</span></div>}<div className="workshop-footer"><button className="text-link" onClick={()=>setHintOpen(v=>!v)}><Lightbulb size={15}/>{hintOpen?'ইঙ্গিত লুকাও':'একটু ইঙ্গিত দাও'}</button><button className="text-link" onClick={onPractice}>আরও অনুশীলন করো <ArrowRight size={15}/></button></div>
     <section className="workshop-takeaways"><h2>মনে রাখবে</h2><ul>{content.takeaways.map((item,i)=><li key={i}>{item}</li>)}</ul></section>
   </main>
