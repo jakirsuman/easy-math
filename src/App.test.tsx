@@ -305,6 +305,7 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(wrong!)
     fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
     expect(screen.getByText('এই পাঠের একটি সাধারণ ভুল')).toBeInTheDocument()
+    expect(screen.getByText(/তুমি “.*” বিকল্পটি বেছেছ/)).toBeInTheDocument()
     expect(screen.getAllByText(lessonTeachingNotes.decimals.commonError).length).toBeGreaterThan(1)
     expect(screen.getAllByText(lessonTeachingNotes.decimals.correction).length).toBeGreaterThan(1)
   })
@@ -317,8 +318,11 @@ describe('Easy Math learning flow', () => {
     expect(second).toHaveLength(6)
     expect(first[0].prompt).toBe(second[0].prompt)
     expect(first.slice(1, 4).map((question) => question.prompt)).not.toEqual(second.slice(1, 4).map((question) => question.prompt))
-    expect(first[4].prompt).toBe(second[4].prompt)
+    expect(first[4].prompt).not.toBe(second[4].prompt)
+    expect(second[4].type).toBe('short-answer')
+    expect(second[4].prompt).toMatch(/^বিকল্প না দেখে উত্তর লিখো:/)
     expect(first[5].correctOrder).toEqual(second[5].correctOrder)
+    expect(first[5].steps).not.toEqual(second[5].steps)
   })
 
   it('accepts Bengali or English numerals and optional units in typed answers', () => {
@@ -328,6 +332,15 @@ describe('Easy Math learning flow', () => {
     expect(isLessonAnswerCorrect(question, '২৪')).toBe(false)
   })
 
+  it('accepts equivalent fraction and decimal forms in typed mastery answers', () => {
+    const fraction = getLessonAssessment('equivalent-fractions', lessonContent['equivalent-fractions']).find((item) => item.type === 'short-answer')!
+    expect(isLessonAnswerCorrect(fraction, '৪/৬')).toBe(true)
+    expect(isLessonAnswerCorrect(fraction, '0.6666666667')).toBe(false)
+    const decimalFraction = getLessonAssessment('decimals', lessonContent.decimals).find((item) => item.type === 'short-answer')!
+    expect(isLessonAnswerCorrect(decimalFraction, '0.75')).toBe(true)
+    expect(isLessonAnswerCorrect(decimalFraction, '০.৭৫')).toBe(true)
+    expect(isLessonAnswerCorrect(decimalFraction, '0.74')).toBe(false)
+  })
   it('schedules spaced reviews after one day, then three, seven and fourteen days', () => {
     const day = 24 * 60 * 60 * 1000
     const start = Date.UTC(2026, 0, 1)
