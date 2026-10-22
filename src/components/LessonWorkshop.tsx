@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, Lightbulb, RotateCcw, Sparkles } from 'lucide-react'
 import type { GuidedLessonContent } from '../data/lessonContent'
+import { getLessonAssessment } from '../data/lessonAssessment'
+import { lessonTeachingNotes } from '../data/lessonTeachingNotes'
 import './LessonWorkshop.css'
 
 type Props = {
@@ -51,15 +53,26 @@ export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed
   const [quantity,setQuantity] = useState(4)
   const [xValue,setXValue] = useState(5)
   const [showSteps,setShowSteps] = useState(false)
-  const [selectedAnswer,setSelectedAnswer] = useState('')
-  const [submitted,setSubmitted] = useState(false)
+  const [assessmentIndex,setAssessmentIndex] = useState(0)
+  const [assessmentAnswers,setAssessmentAnswers] = useState<Record<string,string>>({})
+  const [submittedQuestionIds,setSubmittedQuestionIds] = useState<string[]>([])
+  const [firstAttemptCorrect,setFirstAttemptCorrect] = useState<Record<string,boolean>>({})
+  const [assessmentFinished,setAssessmentFinished] = useState(false)
   const [hintOpen,setHintOpen] = useState(false)
   useEffect(()=> {
     setPosition(3);setOperation('+');setA(6);setB(4);setC(3);setNumerator(1);setDenominator(4);setFactorNumber(12);setPercent(35)
     setLength(6);setWidth(3);setAngle(60);setShapeType('triangle');setFractionOperation('×');setAngleA(55);setAngleB(65);setUnitValue(2);setUnitPrice(25);setQuantity(4);setXValue(5)
-    setShowSteps(false);setSelectedAnswer('');setSubmitted(false);setHintOpen(false)
+    setShowSteps(false);setAssessmentIndex(0);setAssessmentAnswers({});setSubmittedQuestionIds([]);setFirstAttemptCorrect({});setAssessmentFinished(false);setHintOpen(false)
   },[lessonId])
-  const isCorrect = selectedAnswer === content.answer
+  const assessmentQuestions = getLessonAssessment(lessonId, { question: content.question, options: content.options, answer: content.answer, explanation: content.explanation })
+  const currentQuestion = assessmentQuestions[assessmentIndex]
+  const selectedAnswer = assessmentAnswers[currentQuestion?.id ?? ''] ?? ''
+  const submitted = currentQuestion ? submittedQuestionIds.includes(currentQuestion.id) : false
+  const isCorrect = currentQuestion ? selectedAnswer === currentQuestion.answer : false
+  const assessmentScore = assessmentQuestions.reduce((score, question) => score + (firstAttemptCorrect[question.id] ? 1 : 0), 0)
+  const passMark = Math.ceil(assessmentQuestions.length * 0.8)
+  const hasMastered = assessmentFinished && assessmentScore >= passMark
+  const teachingNote = lessonTeachingNotes[lessonId]
   const factors = Array.from({length:factorNumber},(_,i)=>i+1).filter(n=>factorNumber%n===0)
   const safeAngleB = Math.min(angleB,179-angleA)
   const model = () => {
@@ -92,9 +105,18 @@ export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed
     <button className="back-link" onClick={onBack}><ArrowLeft size={16}/> শেখার পথে ফিরে যাও</button>
     <div className="lesson-topline"><span className="lesson-tag">{pathTitle}</span><span className="lesson-age-chip">{ageLabel}</span><span>ধাপে ধাপে শিখি</span></div>
     <div className="workshop-heading"><div><div className="workshop-kicker"><Sparkles size={15}/> বুঝি · পরীক্ষা করি · শিখি</div><h1 className="lesson-title">{title}</h1></div><div className="workshop-mark">{mode==='fraction'?'½':mode==='algebra'?'x':mode==='shape'?'▱':mode==='angle'?'∠':mode==='percent'?'%':'∑'}</div></div>
-    <section className="workshop-card"><div className="workshop-section-title"><span>১</span><div><h2>প্রথমে ধারণাটি বুঝি</h2><p>{content.concept}</p></div></div><div className="workshop-example"><strong>{content.exampleTitle}</strong><p>{content.example}</p></div><div className="workshop-section-title"><span>২</span><div><h2>নিজে বদলে দেখো</h2><p>নিচের সংখ্যা বা নিয়ন্ত্রণ বদলাও। চিত্র ও হিসাব কীভাবে বদলায়, খেয়াল করো।</p></div></div><div className="workshop-model">{model()}</div>{showSteps&&<div className="workshop-steps-panel"><h3>ধাপে ধাপে</h3><ol>{content.steps.map((step,i)=><li key={i}>{step}</li>)}</ol><div className="workshop-mistake"><strong>সাধারণ ভুল:</strong> {content.mistake}</div></div>}<button className="button-secondary" onClick={()=>setShowSteps(v=>!v)}>{showSteps?'ধাপগুলো লুকাও':'সমাধানের ধাপ দেখাও'}</button></section>
-    <section className="workshop-card"><div className="workshop-section-title"><span>৩</span><div><h2>এবার তুমি উত্তর দাও</h2><p>নিজে চেষ্টা করো। ভুল হলে ব্যাখ্যা দেখে আবার চেষ্টা করা যাবে।</p></div></div><div className="workshop-question"><h3>{content.question}</h3><div className="workshop-options">{content.options.map(option=><button key={option} disabled={submitted} className={(selectedAnswer===option?'chosen ':'')+(submitted&&option===content.answer?' right':'')+(submitted&&selectedAnswer===option&&!isCorrect?' wrong':'')} onClick={()=>setSelectedAnswer(option)}>{option}{submitted&&option===content.answer&&<Check size={16}/>}</button>)}</div>{!submitted?<button className="button-primary" disabled={!selectedAnswer} onClick={()=>setSubmitted(true)}>উত্তর যাচাই করি <ArrowRight size={16}/></button>:<div className={'workshop-feedback '+(isCorrect?'success':'retry')}><strong>{isCorrect?'সঠিক উত্তর!':'এখনও ঠিক হয়নি। আবার চেষ্টা করো।'}</strong><p>{content.explanation}</p>{!isCorrect&&<button className="text-link" onClick={()=>{setSelectedAnswer('');setSubmitted(false)}}><RotateCcw size={14}/> আবার চেষ্টা</button>}</div>}</div></section>
-    <section className="workshop-finish"><div><strong>{completed?'এই পাঠ আগেই সম্পন্ন করেছ।':'ধারণাটি বুঝতে পেরেছ?'}</strong><p>সঠিক উত্তর দিলে পাঠ সম্পন্ন হবে। প্রয়োজনে ধাপ বা ইঙ্গিত আবার দেখো।</p></div><button className="button-primary" disabled={!submitted||!isCorrect} onClick={onComplete}>{completed?'পাঠ সম্পন্ন':'পাঠ শেষ করো'} <Check size={16}/></button></section>
+    <section className="workshop-card"><div className="workshop-section-title"><span>১</span><div><h2>প্রথমে ধারণাটি বুঝি</h2><p>{content.concept}</p></div></div><div className="workshop-example"><strong>{content.exampleTitle}</strong><p>{content.example}</p></div>{teachingNote&&<section className="workshop-deep-dive"><div className="workshop-deep-dive-header"><span>আরও গভীরে বুঝি</span><p>{teachingNote.why}</p></div><div className="workshop-mental-model"><strong>মনে ছবি তৈরি করো</strong><p>{teachingNote.mentalModel}</p></div><div className="workshop-worked-example"><h3>{teachingNote.workedExampleTitle}</h3><p>{teachingNote.workedExample}</p><ol>{teachingNote.workedSteps.map((step,i)=><li key={i}>{step}</li>)}</ol></div><div className="workshop-misconception"><div><strong>সাধারণ ভুল</strong><p>{teachingNote.commonError}</p></div><div><strong>কীভাবে ঠিক করবে</strong><p>{teachingNote.correction}</p></div></div><div className="workshop-transfer"><strong>নিজে প্রয়োগ করো</strong><p>{teachingNote.transfer}</p></div></section>}<div className="workshop-section-title"><span>২</span><div><h2>নিজে বদলে দেখো</h2><p>নিচের সংখ্যা বা নিয়ন্ত্রণ বদলাও। চিত্র ও হিসাব কীভাবে বদলায়, খেয়াল করো।</p></div></div><div className="workshop-model">{model()}</div>{showSteps&&<div className="workshop-steps-panel"><h3>ধাপে ধাপে</h3><ol>{content.steps.map((step,i)=><li key={i}>{step}</li>)}</ol><div className="workshop-mistake"><strong>সাধারণ ভুল:</strong> {content.mistake}</div></div>}<button className="button-secondary" onClick={()=>setShowSteps(v=>!v)}>{showSteps?'ধাপগুলো লুকাও':'সমাধানের ধাপ দেখাও'}</button></section>
+    <section className="workshop-card"><div className="workshop-section-title"><span>৩</span><div><h2>শেখা যাচাই করি</h2><p>একটি প্রশ্ন ঠিক করাই যথেষ্ট নয়। ধারণা, হিসাব ও নতুন পরিস্থিতিতে প্রয়োগ—মোট {bn(assessmentQuestions.length)}টি প্রশ্নের উত্তর দাও। প্রতিটি উত্তরের ব্যাখ্যা দেখবে; প্রথম চেষ্টার ফল দিয়ে শেখার অগ্রগতি হিসাব হবে।</p></div></div>
+      {!assessmentFinished&&currentQuestion&&<div className="workshop-question">
+        <div className="mastery-progress-row"><span>প্রশ্ন {bn(assessmentIndex+1)} / {bn(assessmentQuestions.length)}</span><span>লক্ষ্য: {bn(passMark)}টি সঠিক</span></div>
+        <div className="mastery-progress-track" role="progressbar" aria-label="যাচাইয়ের অগ্রগতি" aria-valuemin={0} aria-valuemax={assessmentQuestions.length} aria-valuenow={assessmentIndex}><span style={{width:((assessmentIndex+1)/assessmentQuestions.length*100)+'%'}}/></div>
+        <h3>{currentQuestion.prompt}</h3>
+        <div className="workshop-options">{currentQuestion.options.map(option=><button key={option} disabled={submitted} className={(selectedAnswer===option?'chosen ':'')+(submitted&&option===currentQuestion.answer?' right':'')+(submitted&&selectedAnswer===option&&!isCorrect?' wrong':'')} onClick={()=>setAssessmentAnswers(previous=>({...previous,[currentQuestion.id]:option}))}>{option}{submitted&&option===currentQuestion.answer&&<Check size={16}/>}</button>)}</div>
+        {!submitted?<button className="button-primary" disabled={!selectedAnswer} onClick={()=>{setSubmittedQuestionIds(previous=>[...previous,currentQuestion.id]);setFirstAttemptCorrect(previous=>({...previous,[currentQuestion.id]:isCorrect}))}}>উত্তর যাচাই করি <ArrowRight size={16}/></button>:<div className={'workshop-feedback '+(isCorrect?'success':'retry')}><strong>{isCorrect?'সঠিক উত্তর। কারণটিও বুঝে নাও।':'এইবার সঠিক হয়নি। সমাধান দেখে আবার শিখো।'}</strong>{!isCorrect&&<p>সঠিক উত্তর: <strong>{currentQuestion.answer}</strong></p>}<p>{currentQuestion.explanation}</p><button className="button-primary" onClick={()=>{if(assessmentIndex===assessmentQuestions.length-1){setAssessmentFinished(true)}else{setAssessmentIndex(index=>index+1)}}}>{assessmentIndex===assessmentQuestions.length-1?'ফলাফল দেখো':'পরের প্রশ্ন'} <ArrowRight size={16}/></button></div>}
+      </div>}
+      {assessmentFinished&&<div className={'mastery-result '+(hasMastered?'mastery-pass':'mastery-retry')}><strong>{hasMastered?'পাঠের প্রাথমিক দক্ষতা যাচাই পাস':'আরও অনুশীলন দরকার'}</strong><p>প্রথম চেষ্টায় {bn(assessmentScore)} / {bn(assessmentQuestions.length)}টি সঠিক। পাস করতে অন্তত {bn(passMark)}টি সঠিক দরকার। {hasMastered?'এখন নতুন পরিস্থিতিতে এই ধারণা ব্যবহার করার অনুশীলন চালিয়ে যাও।':'যে প্রশ্নগুলো ভুল হয়েছে, সেগুলোর ব্যাখ্যা আবার পড়ে পুনরায় যাচাই দাও।'}</p>{!hasMastered&&<button className="button-secondary" onClick={()=>{setAssessmentIndex(0);setAssessmentAnswers({});setSubmittedQuestionIds([]);setFirstAttemptCorrect({});setAssessmentFinished(false)}}><RotateCcw size={15}/> আবার যাচাই দাও</button>}</div>}
+    </section>
+    {assessmentFinished&&<section className="workshop-finish"><div><strong>{hasMastered?(completed?'এই পাঠ আগেই সম্পন্ন করেছ।':'এই পাঠের প্রাথমিক লক্ষ্য পূরণ হয়েছে।'):'পাঠটি এখনো সম্পন্ন হয়নি।'}</strong><p>{hasMastered?'কমপক্ষে ৮০% প্রশ্ন প্রথম চেষ্টায় সঠিক হয়েছে।':'পাসের নম্বর পেলে পাঠ সম্পন্ন করা যাবে। ভুল উত্তরের ব্যাখ্যা দেখে আবার চেষ্টা করো।'}</p></div><button className="button-primary" disabled={!hasMastered} onClick={onComplete}>{completed?'পাঠ সম্পন্ন':'পাঠ শেষ করো'} <Check size={16}/></button></section>}
     {hintOpen&&<div className="workshop-hint"><Lightbulb size={18}/><span>{content.hint}</span></div>}<div className="workshop-footer"><button className="text-link" onClick={()=>setHintOpen(v=>!v)}><Lightbulb size={15}/>{hintOpen?'ইঙ্গিত লুকাও':'একটু ইঙ্গিত দাও'}</button><button className="text-link" onClick={onPractice}>আরও অনুশীলন করো <ArrowRight size={15}/></button></div>
     <section className="workshop-takeaways"><h2>মনে রাখবে</h2><ul>{content.takeaways.map((item,i)=><li key={i}>{item}</li>)}</ul></section>
   </main>

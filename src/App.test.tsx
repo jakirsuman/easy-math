@@ -4,6 +4,8 @@ import App from './App'
 import { learningPaths } from './data/curriculum'
 import { lessonContent } from './data/lessonContent'
 import { practiceQuestions } from './data/expandedQuestions'
+import { getLessonAssessment } from './data/lessonAssessment'
+import { lessonTeachingNotes } from './data/lessonTeachingNotes'
 
 afterEach(() => cleanup())
 beforeEach(() => localStorage.clear())
@@ -16,13 +18,26 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByText('ভগ্নাংশ, দশমিক ও শতকরা')).toBeInTheDocument()
   })
 
-  it('opens the fraction lesson and records completion locally', async () => {
+  it('requires mastery-check success before recording fraction lesson completion', async () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: /শেখা শুরু করো/ }))
     expect(screen.getByRole('heading', { name: 'ভগ্নাংশের শুরু' })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: '৩/৪' }))
+    const quickCheckOptions = Array.from(document.querySelectorAll('.discovery-options button'))
+    fireEvent.click(quickCheckOptions.find((button) => button.textContent?.trim() === '৩/৪')!)
     fireEvent.click(screen.getByRole('button', { name: /উত্তর মিলিয়ে দেখি/ }))
     expect(screen.getByText(/ঠিক ধরেছ/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /পাঠ শেষ করো/ })).not.toBeInTheDocument()
+    const assessment = getLessonAssessment('fraction-basics', lessonContent['fraction-basics'])
+    for (let index = 0; index < assessment.length; index += 1) {
+      const question = assessment[index]
+      const options = Array.from(document.querySelectorAll('.workshop-question .workshop-options button'))
+      const correct = options.find((button) => button.textContent?.trim() === question.answer)
+      expect(correct, question.id).toBeDefined()
+      fireEvent.click(correct!)
+      fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
+      fireEvent.click(screen.getByRole('button', { name: index === assessment.length - 1 ? /ফলাফল দেখো/ : /পরের প্রশ্ন/ }))
+    }
+    expect(screen.getByText('পাঠের প্রাথমিক দক্ষতা যাচাই পাস')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /পাঠ শেষ করো/ }))
     expect(screen.getByText(/এই পাঠ আগেই শেষ করেছ/)).toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('easy-math-progress-v1') || '{}').completedLessons).toContain('fraction-basics')
@@ -33,7 +48,7 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'অনুশীলন' })[0])
     fireEvent.click(screen.getByRole('button', { name: /১\/২/ }))
     fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই/ }))
-    expect(screen.getByText('সঠিক উত্তর!')).toBeInTheDocument()
+    expect(screen.getByText(/সঠিক উত্তর/)).toBeInTheDocument()
     expect(screen.getByText(/মোট ২টি সমান অংশের মধ্যে ১টি অংশ/)).toBeInTheDocument()
   })
 
@@ -74,7 +89,7 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByLabelText('শতাংশের ঘর')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '০.৮৫' }))
     fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই/ }))
-    expect(screen.getByText('সঠিক উত্তর!')).toBeInTheDocument()
+    expect(screen.getByText(/সঠিক উত্তর/)).toBeInTheDocument()
     expect(screen.getByText(/০\.৬০ \+ ০\.২৫ = ০\.৮৫/)).toBeInTheDocument()
   })
 
@@ -180,8 +195,8 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByLabelText('দশমিকের ক্রিয়া')).toHaveValue('+')
     fireEvent.change(screen.getByLabelText('দশমিকের ক্রিয়া'), { target: { value: '−' } })
     expect(screen.getByText('৩.১০')).toBeInTheDocument()
-    expect(screen.getByText('৬.৪')).toBeInTheDocument()
-    expect(screen.getByText('৩.৩')).toBeInTheDocument()
+    expect(screen.getAllByText('৬.৪')).toHaveLength(2)
+    expect(screen.getAllByText('৩.৩')).toHaveLength(2)
   })
 
   it('visualizes both addends in same-denominator fraction addition', () => {
@@ -211,6 +226,44 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(screen.getByRole('button', { name: '১২' }))
     fireEvent.click(screen.getByRole('button', { name: /উত্তর মিলিয়ে দেখি/ }))
     expect(screen.getByText(/৪টি দলে ৩টি করে/)).toBeInTheDocument()
+  })
+
+  it('provides a five-question mastery check and deeper teaching notes for every lesson', () => {
+    const lessons = learningPaths.flatMap((path) => path.lessons)
+    for (const lesson of lessons) {
+      const content = lessonContent[lesson.id]
+      expect(lessonTeachingNotes[lesson.id], `Missing deep explanation for ${lesson.id}`).toBeDefined()
+      expect(lessonTeachingNotes[lesson.id].workedSteps.length, lesson.id).toBeGreaterThanOrEqual(3)
+      const assessment = getLessonAssessment(lesson.id, content)
+      expect(assessment.length, `Expected five assessment questions for ${lesson.id}`).toBe(5)
+      expect(assessment[0].prompt).toBe(content.question)
+      for (const question of assessment) {
+        expect(question.options).toContain(question.answer)
+        expect(new Set(question.options).size, question.id).toBe(question.options.length)
+        expect(question.explanation.trim().length).toBeGreaterThan(15)
+      }
+    }
+  })
+
+  it('requires at least 80 percent on a multi-question checkpoint before lesson completion', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: '১০–১১ বছর' }))
+    fireEvent.click(screen.getByRole('button', { name: 'দশমিক সংখ্যা খুলুন' }))
+    expect(screen.getByRole('heading', { name: 'শেখা যাচাই করি' })).toBeInTheDocument()
+    expect(screen.getByText(/৫টি প্রশ্নের উত্তর দাও/)).toBeInTheDocument()
+    const assessment = getLessonAssessment('decimals', lessonContent.decimals)
+    for (let index = 0; index < assessment.length; index += 1) {
+      const question = assessment[index]
+      const options = Array.from(document.querySelectorAll('.workshop-question .workshop-options button'))
+      const correct = options.find((button) => button.textContent?.trim() === question.answer)
+      expect(correct, question.id).toBeDefined()
+      fireEvent.click(correct!)
+      fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
+      fireEvent.click(screen.getByRole('button', { name: index === assessment.length - 1 ? /ফলাফল দেখো/ : /পরের প্রশ্ন/ }))
+    }
+    expect(screen.getByText('পাঠের প্রাথমিক দক্ষতা যাচাই পাস')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /পাঠ শেষ করো/ })).toBeEnabled()
   })
 
   it('renders the supplied Sopan wordmark in the app navigation', () => {
