@@ -305,8 +305,8 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(wrong!)
     fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
     expect(screen.getByText('এই পাঠের একটি সাধারণ ভুল')).toBeInTheDocument()
-    expect(screen.getByText(lessonTeachingNotes.decimals.commonError)).toBeInTheDocument()
-    expect(screen.getByText(lessonTeachingNotes.decimals.correction)).toBeInTheDocument()
+    expect(screen.getAllByText(lessonTeachingNotes.decimals.commonError).length).toBeGreaterThan(1)
+    expect(screen.getAllByText(lessonTeachingNotes.decimals.correction).length).toBeGreaterThan(1)
   })
 
   it('rotates supplementary questions after a successful spaced-review cycle', () => {
