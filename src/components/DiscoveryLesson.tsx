@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, Lightbulb, RotateCcw, Sparkles } from 'lucide-react'
 import { lessonContent } from '../data/lessonContent'
-import { getLessonAssessment } from '../data/lessonAssessment'
+import { getLessonAssessment, isLessonAnswerCorrect } from '../data/lessonAssessment'
 import { lessonTeachingNotes } from '../data/lessonTeachingNotes'
 import './DiscoveryLesson.css'
 
@@ -11,7 +11,7 @@ type Props = {
 }
 const bn = (n: number | string) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[Number(d)])
 
-export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, completed, onBack, onComplete, onPractice }: Props) {
+export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, completed, reviewMode = false, onBack, onComplete, onPractice }: Props) {
   const [crores, setCrores] = useState(0)
   const [tenLakhs, setTenLakhs] = useState(0)
   const [lakhs, setLakhs] = useState(0)
@@ -32,6 +32,7 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
   const [submitted, setSubmitted] = useState(false)
   const [assessmentIndex,setAssessmentIndex] = useState(0)
   const [assessmentAnswers,setAssessmentAnswers] = useState<Record<string,string>>({})
+  const [orderedStepsByQuestion,setOrderedStepsByQuestion] = useState<Record<string,string[]>>({})
   const [submittedQuestionIds,setSubmittedQuestionIds] = useState<string[]>([])
   const [firstAttemptCorrect,setFirstAttemptCorrect] = useState<Record<string,boolean>>({})
   const [assessmentFinished,setAssessmentFinished] = useState(false)
@@ -40,18 +41,29 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
     setCrores(0); setTenLakhs(0); setLakhs(0); setTenThousands(0); setThousands(0)
     setHundreds(3); setTens(4); setOnes(2); setTenths(0); setHundredths(0); setThousandths(0); setSelectedPlace(6)
     setGroups(4); setItems(3); setDenominator(4); setNumerator(3); setAnswer(''); setSubmitted(false)
-    setAssessmentIndex(0); setAssessmentAnswers({}); setSubmittedQuestionIds([]); setFirstAttemptCorrect({}); setAssessmentFinished(false); setHintOpen(false)
+    setAssessmentIndex(0); setAssessmentAnswers({}); setOrderedStepsByQuestion({}); setSubmittedQuestionIds([]); setFirstAttemptCorrect({}); setAssessmentFinished(false); setHintOpen(false)
   }, [lessonId])
   const staticContent = lessonContent[lessonId] ?? lessonContent['fraction-basics']
   const assessmentQuestions = getLessonAssessment(lessonId, { question: staticContent.question, options: staticContent.options, answer: staticContent.answer, explanation: staticContent.explanation })
   const currentAssessmentQuestion = assessmentQuestions[assessmentIndex]
   const selectedAssessmentAnswer = assessmentAnswers[currentAssessmentQuestion?.id ?? ''] ?? ''
+  const orderedCurrentSteps = currentAssessmentQuestion?.type === 'ordered-steps' ? (orderedStepsByQuestion[currentAssessmentQuestion.id] ?? [...(currentAssessmentQuestion.steps ?? [])]) : []
   const assessmentSubmitted = currentAssessmentQuestion ? submittedQuestionIds.includes(currentAssessmentQuestion.id) : false
-  const currentAssessmentCorrect = currentAssessmentQuestion ? selectedAssessmentAnswer === currentAssessmentQuestion.answer : false
+  const currentAssessmentCorrect = currentAssessmentQuestion ? currentAssessmentQuestion.type === 'ordered-steps'
+    ? orderedCurrentSteps.length === (currentAssessmentQuestion.correctOrder ?? []).length && orderedCurrentSteps.every((step,index)=>step===currentAssessmentQuestion.correctOrder?.[index])
+    : isLessonAnswerCorrect(currentAssessmentQuestion, selectedAssessmentAnswer) : false
+  const canSubmitAssessment = currentAssessmentQuestion?.type === 'ordered-steps' || Boolean(selectedAssessmentAnswer.trim())
   const assessmentScore = assessmentQuestions.reduce((score, question) => score + (firstAttemptCorrect[question.id] ? 1 : 0), 0)
   const passMark = Math.ceil(assessmentQuestions.length * 0.8)
   const hasMastered = assessmentFinished && assessmentScore >= passMark
   const teachingNote = lessonTeachingNotes[lessonId]
+  function moveOrderedStep(index:number,direction:-1|1) {
+    if(!currentAssessmentQuestion||currentAssessmentQuestion.type!=='ordered-steps') return
+    const steps=[...orderedCurrentSteps], target=index+direction
+    if(target<0||target>=steps.length) return
+    ;[steps[index],steps[target]]=[steps[target],steps[index]]
+    setOrderedStepsByQuestion(previous=>({...previous,[currentAssessmentQuestion.id]:steps}))
+  }
   const place = lessonId === 'place-value'
   const multiply = lessonId === 'multiplication-groups'
   const placeRows = [
@@ -136,10 +148,10 @@ export function DiscoveryLesson({ lessonId, title, pathTitle, ageLabel, complete
       </div>
     </section>
     <section className="workshop-card"><div className="workshop-section-title"><span>৩</span><div><h2>পাঁচটি প্রশ্নে শেখা যাচাই</h2><p>ধারণা, হিসাব ও নতুন পরিস্থিতিতে প্রয়োগ—সব মিলিয়ে {bn(assessmentQuestions.length)}টি প্রশ্নের উত্তর দাও। প্রতিটি উত্তরের ব্যাখ্যা পড়ো। প্রথম চেষ্টার ফল থেকে অগ্রগতি হিসাব হবে।</p></div></div>
-      {!assessmentFinished&&currentAssessmentQuestion&&<div className="workshop-question"><div className="mastery-progress-row"><span>প্রশ্ন {bn(assessmentIndex+1)} / {bn(assessmentQuestions.length)}</span><span>পাস করতে {bn(passMark)}টি সঠিক</span></div><div className="mastery-progress-track" role="progressbar" aria-label="যাচাইয়ের অগ্রগতি" aria-valuemin={0} aria-valuemax={assessmentQuestions.length} aria-valuenow={assessmentIndex}><span style={{width:((assessmentIndex+1)/assessmentQuestions.length*100)+'%'}}/></div><h3>{currentAssessmentQuestion.prompt}</h3><div className="workshop-options">{currentAssessmentQuestion.options.map(option=><button type="button" key={option} disabled={assessmentSubmitted} className={(selectedAssessmentAnswer===option?'chosen ':'')+(assessmentSubmitted&&option===currentAssessmentQuestion.answer?' right':'')+(assessmentSubmitted&&selectedAssessmentAnswer===option&&!currentAssessmentCorrect?' wrong':'')} onClick={()=>setAssessmentAnswers(previous=>({...previous,[currentAssessmentQuestion.id]:option}))}>{option}{assessmentSubmitted&&option===currentAssessmentQuestion.answer&&<Check size={16}/>}</button>)}</div>{!assessmentSubmitted?<button className="button-primary" disabled={!selectedAssessmentAnswer} onClick={()=>{setSubmittedQuestionIds(previous=>[...previous,currentAssessmentQuestion.id]);setFirstAttemptCorrect(previous=>({...previous,[currentAssessmentQuestion.id]:currentAssessmentCorrect}))}}>উত্তর যাচাই করি <ArrowRight size={16}/></button>:<div className={'workshop-feedback '+(currentAssessmentCorrect?'success':'retry')}><strong>{currentAssessmentCorrect?'সঠিক উত্তর। কারণটিও বুঝে নাও।':'এইবার সঠিক হয়নি। সমাধান দেখে আবার শিখো।'}</strong>{!currentAssessmentCorrect&&<p>সঠিক উত্তর: <strong>{currentAssessmentQuestion.answer}</strong></p>}<p>{currentAssessmentQuestion.explanation}</p><button className="button-primary" onClick={()=>{if(assessmentIndex===assessmentQuestions.length-1){setAssessmentFinished(true)}else{setAssessmentIndex(index=>index+1)}}}>{assessmentIndex===assessmentQuestions.length-1?'ফলাফল দেখো':'পরের প্রশ্ন'} <ArrowRight size={16}/></button></div>}</div>}
-      {assessmentFinished&&<div className={'mastery-result '+(hasMastered?'mastery-pass':'mastery-retry')}><strong>{hasMastered?'পাঠের প্রাথমিক দক্ষতা যাচাই পাস':'আরও অনুশীলন দরকার'}</strong><p>প্রথম চেষ্টায় {bn(assessmentScore)} / {bn(assessmentQuestions.length)}টি সঠিক। পাস করতে অন্তত {bn(passMark)}টি সঠিক দরকার। {hasMastered?'এখন নতুন পরিস্থিতিতে এই ধারণা ব্যবহার করার অনুশীলন চালিয়ে যাও।':'ভুল প্রশ্নগুলোর ব্যাখ্যা পড়ে পুনরায় যাচাই দাও।'}</p>{!hasMastered&&<button className="button-secondary" onClick={()=>{setAssessmentIndex(0);setAssessmentAnswers({});setSubmittedQuestionIds([]);setFirstAttemptCorrect({});setAssessmentFinished(false)}}><RotateCcw size={15}/> আবার যাচাই দাও</button>}</div>}
+      {!assessmentFinished&&currentAssessmentQuestion&&<div className="workshop-question"><div className="mastery-progress-row"><span>প্রশ্ন {bn(assessmentIndex+1)} / {bn(assessmentQuestions.length)}</span><span>পাস করতে {bn(passMark)}টি সঠিক</span></div><div className="mastery-progress-track" role="progressbar" aria-label="যাচাইয়ের অগ্রগতি" aria-valuemin={0} aria-valuemax={assessmentQuestions.length} aria-valuenow={assessmentIndex}><span style={{width:((assessmentIndex+1)/assessmentQuestions.length*100)+'%'}}/></div><h3>{currentAssessmentQuestion.prompt}</h3>{currentAssessmentQuestion.type==='short-answer'?<label className="assessment-text-label">নিজের হিসাব লিখো<input aria-label="নিজের উত্তর লিখো" type="text" inputMode="text" autoComplete="off" value={selectedAssessmentAnswer} disabled={assessmentSubmitted} onChange={event=>setAssessmentAnswers(previous=>({...previous,[currentAssessmentQuestion.id]:event.target.value}))} placeholder="এখানে উত্তর লেখো"/></label>:currentAssessmentQuestion.type==='ordered-steps'?<ol className="assessment-order-list">{orderedCurrentSteps.map((step,index)=><li key={step}><span className="assessment-order-number">{bn(index+1)}</span><p>{step}</p><div className="assessment-order-controls"><button type="button" aria-label={'ধাপ '+bn(index+1)+' উপরে'} disabled={assessmentSubmitted||index===0} onClick={()=>moveOrderedStep(index,-1)}>↑ উপরে</button><button type="button" aria-label={'ধাপ '+bn(index+1)+' নিচে'} disabled={assessmentSubmitted||index===orderedCurrentSteps.length-1} onClick={()=>moveOrderedStep(index,1)}>↓ নিচে</button></div></li>)}</ol>:<div className="workshop-options">{(currentAssessmentQuestion.options??[]).map(option=><button type="button" key={option} disabled={assessmentSubmitted} className={(selectedAssessmentAnswer===option?'chosen ':'')+(assessmentSubmitted&&option===currentAssessmentQuestion.answer?' right':'')+(assessmentSubmitted&&selectedAssessmentAnswer===option&&!currentAssessmentCorrect?' wrong':'')} onClick={()=>setAssessmentAnswers(previous=>({...previous,[currentAssessmentQuestion.id]:option}))}>{option}{assessmentSubmitted&&option===currentAssessmentQuestion.answer&&<Check size={16}/>}</button>)}</div>}{!assessmentSubmitted?<button className="button-primary" disabled={!canSubmitAssessment} onClick={()=>{setSubmittedQuestionIds(previous=>[...previous,currentAssessmentQuestion.id]);setFirstAttemptCorrect(previous=>({...previous,[currentAssessmentQuestion.id]:currentAssessmentCorrect}))}}>উত্তর যাচাই করি <ArrowRight size={16}/></button>:<div className={'workshop-feedback '+(currentAssessmentCorrect?'success':'retry')}><strong>{currentAssessmentCorrect?'সঠিক উত্তর। কারণটিও বুঝে নাও।':'এইবার সঠিক হয়নি। সমাধান দেখে আবার শিখো।'}</strong>{!currentAssessmentCorrect&&currentAssessmentQuestion.type!=='ordered-steps'&&<p>সঠিক উত্তর: <strong>{currentAssessmentQuestion.answer}</strong></p>}{!currentAssessmentCorrect&&currentAssessmentQuestion.type==='ordered-steps'&&<div className="assessment-correct-order"><strong>সঠিক ক্রম</strong><ol>{(currentAssessmentQuestion.correctOrder??[]).map((step,index)=><li key={step}>{bn(index+1)}. {step}</li>)}</ol></div>}<p>{currentAssessmentQuestion.explanation}</p>{!currentAssessmentCorrect&&teachingNote&&<aside className="assessment-remediation"><strong>এই পাঠের একটি সাধারণ ভুল</strong><p>{teachingNote.commonError}</p><strong>সংশোধনের উপায়</strong><p>{teachingNote.correction}</p><ol>{teachingNote.workedSteps.slice(0,2).map((step,index)=><li key={index}>{step}</li>)}</ol></aside>}<button className="button-primary" onClick={()=>{if(assessmentIndex===assessmentQuestions.length-1){setAssessmentFinished(true)}else{setAssessmentIndex(index=>index+1)}}}>{assessmentIndex===assessmentQuestions.length-1?'ফলাফল দেখো':'পরের প্রশ্ন'} <ArrowRight size={16}/></button></div>}</div>}
+      {assessmentFinished&&<div className={'mastery-result '+(hasMastered?'mastery-pass':'mastery-retry')}><strong>{hasMastered?'পাঠের প্রাথমিক দক্ষতা যাচাই পাস':'আরও অনুশীলন দরকার'}</strong><p>প্রথম চেষ্টায় {bn(assessmentScore)} / {bn(assessmentQuestions.length)}টি সঠিক। পাস করতে অন্তত {bn(passMark)}টি সঠিক দরকার। {hasMastered?'এখন নতুন পরিস্থিতিতে এই ধারণা ব্যবহার করার অনুশীলন চালিয়ে যাও।':'ভুল প্রশ্নগুলোর ব্যাখ্যা পড়ে পুনরায় যাচাই দাও।'}</p>{!hasMastered&&<button className="button-secondary" onClick={()=>{setAssessmentIndex(0);setAssessmentAnswers({});setOrderedStepsByQuestion({});setSubmittedQuestionIds([]);setFirstAttemptCorrect({});setAssessmentFinished(false)}}><RotateCcw size={15}/> আবার যাচাই দাও</button>}</div>}
     </section>
-    {assessmentFinished&&<section className="discovery-finish"><div><strong>{hasMastered?(completed?'এই পাঠ আগেই শেষ করেছ।':'এই পাঠের প্রাথমিক লক্ষ্য পূরণ হয়েছে।'):'পাঠটি এখনো সম্পন্ন হয়নি।'}</strong><p>{hasMastered?'কমপক্ষে ৮০% প্রশ্ন প্রথম চেষ্টায় সঠিক হয়েছে।':'পাসের নম্বর পেলে পাঠ সম্পন্ন করা যাবে। ভুল উত্তরের ব্যাখ্যা দেখে আবার চেষ্টা করো।'}</p></div><button className="button-primary" disabled={!hasMastered} onClick={onComplete}>{completed?'পাঠ সম্পন্ন':'পাঠ শেষ করো'} <Check size={17}/></button></section>}
+    {assessmentFinished&&<section className="discovery-finish"><div><strong>{hasMastered?(completed?'এই পাঠ আগেই শেষ করেছ।':'এই পাঠের প্রাথমিক লক্ষ্য পূরণ হয়েছে।'):'পাঠটি এখনো সম্পন্ন হয়নি।'}</strong><p>{hasMastered?'কমপক্ষে ৮০% প্রশ্ন প্রথম চেষ্টায় সঠিক হয়েছে।':'পাসের নম্বর পেলে পাঠ সম্পন্ন করা যাবে। ভুল উত্তরের ব্যাখ্যা দেখে আবার চেষ্টা করো।'}</p></div><button className="button-primary" disabled={!hasMastered} onClick={onComplete}>{reviewMode?'পুনরাবৃত্তি শেষ':completed?'পাঠ সম্পন্ন':'পাঠ শেষ করো'} <Check size={17}/></button></section>}
     {hintOpen && <div className="hint-panel">{place?'দশকের ঘর থেকে ডান দিকে এক ঘর সরলে এককের ঘর; বাম দিকে এক ঘর সরলে শতকের ঘর।':multiply?'একটি দলের জিনিস গুনো, তারপর একই সংখ্যার দলগুলো একসঙ্গে যোগ করো।':'মোট ভাগ গুনো—সেটি হর। রঙ করা ভাগের সংখ্যা লব।'}</div>}
     <div className="discovery-bottom"><button className="text-link" onClick={()=>setHintOpen((v)=>!v)}><Lightbulb size={15}/>{hintOpen?'ইঙ্গিত লুকাও':'একটু ইঙ্গিত দাও'}</button><button className="text-link" onClick={onPractice}>আরও অনুশীলন করো <ArrowRight size={15}/></button></div>
   </div>
