@@ -3,7 +3,7 @@ import { practiceQuestions } from './expandedQuestions'
 export type LessonAssessmentQuestion = {
   id: string
   prompt: string
-  type: 'choice' | 'short-answer'
+  type?: 'choice' | 'short-answer'
   options?: readonly string[]
   answer: string
   acceptableAnswers?: readonly string[]
