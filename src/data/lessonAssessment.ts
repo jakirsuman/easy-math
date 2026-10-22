@@ -12,6 +12,7 @@ export type LessonAssessmentQuestion = {
   acceptableAnswers?: readonly string[]
   explanation: string
   responsePurpose?: 'application' | 'error-correction'
+  distractorFeedback?: Readonly<Record<string, string>>
 }
 
 type BaseQuestion = {
@@ -130,14 +131,46 @@ export function normalizeLessonAnswer(value: string): string {
     .replace(/÷/g, '/')
 }
 
+function answerNumericValue(value: string): number | undefined {
+  const normalized = normalizeLessonAnswer(value)
+  if (/^[+-]?\\d+\\/[+-]?\\d+$/.test(normalized)) {
+    const parts = normalized.split('/')
+    const denominator = Number(parts[1])
+    if (!denominator) return undefined
+    return Number(parts[0]) / denominator
+  }
+  if (/^[+-]?\\d+(?:\\.\\d+)?$/.test(normalized)) return Number(normalized)
+  return undefined
+}
+
+function equivalentMathAnswer(expected: string, response: string): boolean {
+  const left = normalizeLessonAnswer(expected)
+  const right = normalizeLessonAnswer(response)
+  if (left === right) return true
+  if (left.includes(':') || right.includes(':')) return false
+  const a = answerNumericValue(left)
+  const b = answerNumericValue(right)
+  return a !== undefined && b !== undefined && Math.abs(a - b) < 1e-9
+}
+
 export function isLessonAnswerCorrect(question: LessonAssessmentQuestion, response: string): boolean {
   if (question.type === 'short-answer') {
     const accepted = question.acceptableAnswers ?? [question.answer]
-    return accepted.some((answer) => normalizeLessonAnswer(answer) === normalizeLessonAnswer(response))
+    return accepted.some((answer) => equivalentMathAnswer(answer, response))
   }
   return question.answer === response
 }
 
+export function getLessonAnswerFeedback(question: LessonAssessmentQuestion, response: string): string | undefined {
+  if (isLessonAnswerCorrect(question, response)) return undefined
+  if (question.type === 'choice') {
+    const tailored = question.distractorFeedback?.[response] ?? question.distractorFeedback?.[normalizeLessonAnswer(response)]
+    if (tailored) return tailored
+    return 'তুমি “' + response + '” বিকল্পটি বেছেছ। এই প্রশ্নে সেটি সঠিক নয়; সঠিক উত্তর “' + question.answer + '”। ব্যাখ্যাটি পড়ে দুই উত্তরের পার্থক্য মিলিয়ে দেখো।'
+  }
+  if (question.type === 'short-answer') return 'তুমি লিখেছ “' + response + '”। সংখ্যার মান, চিহ্ন ও একক আবার মিলিয়ে দেখো।'
+  return undefined
+}
 export function getLessonAssessment(lessonId: string, base: BaseQuestion, reviewVariant = 0): LessonAssessmentQuestion[] {
   const byId = new Map<string, LessonAssessmentQuestion>(
     practiceQuestions.map((q) => [q.id, {
