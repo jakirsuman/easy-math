@@ -12,6 +12,7 @@ type Props = {
   ageLabel: string
   completed: boolean
   reviewMode?: boolean
+  reviewVariant?: number
   content: GuidedLessonContent
   onBack: () => void
   onComplete: () => void
@@ -66,7 +67,7 @@ export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed
     setLength(6);setWidth(3);setAngle(60);setShapeType('triangle');setFractionOperation('×');setAngleA(55);setAngleB(65);setUnitValue(2);setUnitPrice(25);setQuantity(4);setXValue(5)
     setShowSteps(false);setAssessmentIndex(0);setAssessmentAnswers({});setOrderedStepsByQuestion({});setSubmittedQuestionIds([]);setFirstAttemptCorrect({});setAssessmentFinished(false);setHintOpen(false)
   },[lessonId])
-  const assessmentQuestions = getLessonAssessment(lessonId, { question: content.question, options: content.options, answer: content.answer, explanation: content.explanation })
+  const assessmentQuestions = getLessonAssessment(lessonId, { question: content.question, options: content.options, answer: content.answer, explanation: content.explanation }, reviewVariant)
   const currentQuestion = assessmentQuestions[assessmentIndex]
   const selectedAnswer = assessmentAnswers[currentQuestion?.id ?? ''] ?? ''
   const orderedCurrentSteps = currentQuestion?.type === 'ordered-steps' ? (orderedStepsByQuestion[currentQuestion.id] ?? [...(currentQuestion.steps ?? [])]) : []
@@ -124,7 +125,7 @@ export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed
       {!assessmentFinished&&currentQuestion&&<div className="workshop-question">
         <div className="mastery-progress-row"><span>প্রশ্ন {bn(assessmentIndex+1)} / {bn(assessmentQuestions.length)}</span><span>লক্ষ্য: {bn(passMark)}টি সঠিক</span></div>
         <div className="mastery-progress-track" role="progressbar" aria-label="যাচাইয়ের অগ্রগতি" aria-valuemin={0} aria-valuemax={assessmentQuestions.length} aria-valuenow={assessmentIndex}><span style={{width:((assessmentIndex+1)/assessmentQuestions.length*100)+'%'}}/></div>
-        <h3>{currentQuestion.prompt}</h3>
+        <span className="assessment-question-type">{currentQuestion.type === 'short-answer' ? 'নিজে উত্তর লিখো' : currentQuestion.type === 'ordered-steps' ? 'ধাপ সঠিক ক্রমে সাজাও' : 'ধারণা ও হিসাব যাচাই'}</span><h3>{currentQuestion.prompt}</h3>
         {currentQuestion.type === 'short-answer' ? <label className="assessment-text-label">নিজের হিসাব লিখো<input aria-label="নিজের উত্তর লিখো" type="text" inputMode="text" autoComplete="off" value={selectedAnswer} disabled={submitted} onChange={(event) => setAssessmentAnswers(previous => ({...previous,[currentQuestion.id]:event.target.value}))} placeholder="এখানে উত্তর লেখো"/></label>
         : currentQuestion.type === 'ordered-steps' ? <ol className="assessment-order-list">{orderedCurrentSteps.map((step,index)=><li key={step}><span className="assessment-order-number">{bn(index+1)}</span><p>{step}</p><div className="assessment-order-controls"><button type="button" aria-label={'ধাপ '+bn(index+1)+' উপরে'} disabled={submitted||index===0} onClick={()=>moveOrderedStep(index,-1)}>↑ উপরে</button><button type="button" aria-label={'ধাপ '+bn(index+1)+' নিচে'} disabled={submitted||index===orderedCurrentSteps.length-1} onClick={()=>moveOrderedStep(index,1)}>↓ নিচে</button></div></li>)}</ol>
         : <div className="workshop-options">{(currentQuestion.options ?? []).map(option=><button key={option} disabled={submitted} className={(selectedAnswer===option?'chosen ':'')+(submitted&&option===currentQuestion.answer?' right':'')+(submitted&&selectedAnswer===option&&!isCorrect?' wrong':'')} onClick={()=>setAssessmentAnswers(previous=>({...previous,[currentQuestion.id]:option}))}>{option}{submitted&&option===currentQuestion.answer&&<Check size={16}/>}</button>)}</div>}
