@@ -32,7 +32,7 @@ const modes: Record<string, string> = {
   'shapes':'shapes','perimeter-area':'shape','angles':'angle','triangles':'triangle',
   'unit-conversion':'unit','order-of-operations':'order'
 }
-export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed, content, onBack, onComplete, onPractice }: Props) {
+export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed, reviewMode = false, reviewVariant = 0, content, onBack, onComplete, onPractice }: Props) {
   const mode = modes[lessonId] ?? 'operations'
   const [position,setPosition] = useState(3)
   const [operation,setOperation] = useState('+')
