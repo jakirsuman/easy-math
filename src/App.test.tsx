@@ -4,8 +4,36 @@ import App from './App'
 import { learningPaths } from './data/curriculum'
 import { lessonContent } from './data/lessonContent'
 import { practiceQuestions } from './data/expandedQuestions'
-import { getLessonAssessment } from './data/lessonAssessment'
+import { getLessonAssessment, isLessonAnswerCorrect, type LessonAssessmentQuestion } from './data/lessonAssessment'
+import { advanceReviewSchedule, isReviewDue, scheduleFirstReview } from './math/spacedReview'
 import { lessonTeachingNotes } from './data/lessonTeachingNotes'
+
+function answerMasteryQuestion(question: LessonAssessmentQuestion, isLast: boolean) {
+  if (question.type === 'short-answer') {
+    fireEvent.change(screen.getByLabelText('নিজের উত্তর লিখো'), { target: { value: question.answer } })
+  } else if (question.type === 'ordered-steps') {
+    const desired = question.correctOrder ?? []
+    for (let targetIndex = 0; targetIndex < desired.length; targetIndex += 1) {
+      const rows = Array.from(document.querySelectorAll('.assessment-order-list li'))
+      let currentIndex = rows.findIndex((row) => row.querySelector('p')?.textContent === desired[targetIndex])
+      expect(currentIndex, 'Expected each worked step to be visible').toBeGreaterThanOrEqual(targetIndex)
+      while (currentIndex > targetIndex) {
+        const currentRows = Array.from(document.querySelectorAll('.assessment-order-list li'))
+        const up = currentRows[currentIndex].querySelector<HTMLButtonElement>('button[aria-label$="উপরে"]')
+        expect(up).not.toBeNull()
+        fireEvent.click(up!)
+        currentIndex -= 1
+      }
+    }
+  } else {
+    const options = Array.from(document.querySelectorAll('.workshop-question .workshop-options button'))
+    const correct = options.find((button) => button.textContent?.trim() === question.answer)
+    expect(correct, question.id).toBeDefined()
+    fireEvent.click(correct!)
+  }
+  fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
+  fireEvent.click(screen.getByRole('button', { name: isLast ? /ফলাফল দেখো/ : /পরের প্রশ্ন/ }))
+}
 
 afterEach(() => cleanup())
 beforeEach(() => localStorage.clear())
@@ -29,13 +57,7 @@ describe('Easy Math learning flow', () => {
     expect(screen.queryByRole('button', { name: /পাঠ শেষ করো/ })).not.toBeInTheDocument()
     const assessment = getLessonAssessment('fraction-basics', lessonContent['fraction-basics'])
     for (let index = 0; index < assessment.length; index += 1) {
-      const question = assessment[index]
-      const options = Array.from(document.querySelectorAll('.workshop-question .workshop-options button'))
-      const correct = options.find((button) => button.textContent?.trim() === question.answer)
-      expect(correct, question.id).toBeDefined()
-      fireEvent.click(correct!)
-      fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
-      fireEvent.click(screen.getByRole('button', { name: index === assessment.length - 1 ? /ফলাফল দেখো/ : /পরের প্রশ্ন/ }))
+      answerMasteryQuestion(assessment[index], index === assessment.length - 1)
     }
     expect(screen.getByText('পাঠের প্রাথমিক দক্ষতা যাচাই পাস')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /পাঠ শেষ করো/ }))
@@ -228,19 +250,30 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByText(/৪টি দলে ৩টি করে/)).toBeInTheDocument()
   })
 
-  it('provides a five-question mastery check and deeper teaching notes for every lesson', () => {
+  it('provides a six-question mastery check with varied response types and deeper notes for every lesson', () => {
     const lessons = learningPaths.flatMap((path) => path.lessons)
     for (const lesson of lessons) {
       const content = lessonContent[lesson.id]
       expect(lessonTeachingNotes[lesson.id], `Missing deep explanation for ${lesson.id}`).toBeDefined()
       expect(lessonTeachingNotes[lesson.id].workedSteps.length, lesson.id).toBeGreaterThanOrEqual(3)
       const assessment = getLessonAssessment(lesson.id, content)
-      expect(assessment.length, `Expected five assessment questions for ${lesson.id}`).toBe(5)
+      expect(assessment.length, `Expected six assessment questions for ${lesson.id}`).toBe(6)
+      expect(assessment.filter((question) => question.type === 'choice')).toHaveLength(4)
+      expect(assessment.filter((question) => question.type === 'short-answer')).toHaveLength(1)
+      expect(assessment.filter((question) => question.type === 'ordered-steps')).toHaveLength(1)
       expect(assessment[0].prompt).toBe(content.question)
       for (const question of assessment) {
-        expect(question.options).toContain(question.answer)
-        expect(new Set(question.options).size, question.id).toBe(question.options.length)
         expect(question.explanation.trim().length).toBeGreaterThan(15)
+        if (question.type === 'choice') {
+          expect(question.options).toContain(question.answer)
+          expect(new Set(question.options).size, question.id).toBe(question.options?.length)
+        } else if (question.type === 'short-answer') {
+          expect(isLessonAnswerCorrect(question, question.answer), question.id).toBe(true)
+        } else {
+          expect(question.steps?.length, question.id).toBeGreaterThanOrEqual(3)
+          expect(question.correctOrder?.length, question.id).toBe(question.steps?.length)
+          expect(question.steps).not.toEqual(question.correctOrder)
+        }
       }
     }
   })
@@ -251,19 +284,89 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(screen.getByRole('button', { name: '১০–১১ বছর' }))
     fireEvent.click(screen.getByRole('button', { name: 'দশমিক সংখ্যা খুলুন' }))
     expect(screen.getByRole('heading', { name: 'শেখা যাচাই করি' })).toBeInTheDocument()
-    expect(screen.getByText(/৫টি প্রশ্নের উত্তর দাও/)).toBeInTheDocument()
+    expect(screen.getByText(/৬টি প্রশ্নের উত্তর দাও/)).toBeInTheDocument()
     const assessment = getLessonAssessment('decimals', lessonContent.decimals)
     for (let index = 0; index < assessment.length; index += 1) {
-      const question = assessment[index]
-      const options = Array.from(document.querySelectorAll('.workshop-question .workshop-options button'))
-      const correct = options.find((button) => button.textContent?.trim() === question.answer)
-      expect(correct, question.id).toBeDefined()
-      fireEvent.click(correct!)
-      fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
-      fireEvent.click(screen.getByRole('button', { name: index === assessment.length - 1 ? /ফলাফল দেখো/ : /পরের প্রশ্ন/ }))
+      answerMasteryQuestion(assessment[index], index === assessment.length - 1)
     }
     expect(screen.getByText('পাঠের প্রাথমিক দক্ষতা যাচাই পাস')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /পাঠ শেষ করো/ })).toBeEnabled()
+  })
+
+  it('shows misconception-specific remediation after an incorrect lesson answer', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: '১০–১১ বছর' }))
+    fireEvent.click(screen.getByRole('button', { name: 'দশমিক সংখ্যা খুলুন' }))
+    const assessment = getLessonAssessment('decimals', lessonContent.decimals)
+    const wrong = Array.from(document.querySelectorAll('.workshop-question .workshop-options button'))
+      .find((button) => button.textContent?.trim() !== assessment[0].answer)
+    expect(wrong).toBeDefined()
+    fireEvent.click(wrong!)
+    fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
+    expect(screen.getByText('এই পাঠের একটি সাধারণ ভুল')).toBeInTheDocument()
+    expect(screen.getAllByText(lessonTeachingNotes.decimals.commonError).length).toBeGreaterThan(1)
+    expect(screen.getAllByText(lessonTeachingNotes.decimals.correction).length).toBeGreaterThan(1)
+  })
+
+  it('rotates supplementary questions after a successful spaced-review cycle', () => {
+    const base = lessonContent['decimals']
+    const first = getLessonAssessment('decimals', base, 0)
+    const second = getLessonAssessment('decimals', base, 1)
+    expect(first).toHaveLength(6)
+    expect(second).toHaveLength(6)
+    expect(first[0].prompt).toBe(second[0].prompt)
+    expect(first.slice(1, 4).map((question) => question.prompt)).not.toEqual(second.slice(1, 4).map((question) => question.prompt))
+    expect(first[4].prompt).toBe(second[4].prompt)
+    expect(first[5].correctOrder).toEqual(second[5].correctOrder)
+  })
+
+  it('accepts Bengali or English numerals and optional units in typed answers', () => {
+    const question = getLessonAssessment('unit-conversion', lessonContent['unit-conversion']).find((item) => item.type === 'short-answer')!
+    expect(isLessonAnswerCorrect(question, '240 সেমি')).toBe(true)
+    expect(isLessonAnswerCorrect(question, '২৪০')).toBe(true)
+    expect(isLessonAnswerCorrect(question, '২৪')).toBe(false)
+  })
+
+  it('schedules spaced reviews after one day, then three, seven and fourteen days', () => {
+    const day = 24 * 60 * 60 * 1000
+    const start = Date.UTC(2026, 0, 1)
+    let schedule = scheduleFirstReview(start)
+    expect(schedule.dueAt).toBe(start + day)
+    expect(isReviewDue(schedule, start + day - 1)).toBe(false)
+    expect(isReviewDue(schedule, start + day)).toBe(true)
+    schedule = advanceReviewSchedule(schedule, start + day)
+    expect(schedule.dueAt).toBe(start + day + 3 * day)
+    expect(schedule.completedReviews).toBe(1)
+    schedule = advanceReviewSchedule(schedule, schedule.dueAt)
+    expect(schedule.dueAt).toBe(start + day + 3 * day + 7 * day)
+    schedule = advanceReviewSchedule(schedule, schedule.dueAt)
+    expect(schedule.dueAt).toBe(start + day + 3 * day + 7 * day + 14 * day)
+    schedule = advanceReviewSchedule(schedule, schedule.dueAt)
+    expect(schedule.dueAt).toBe(start + day + 3 * day + 7 * day + 14 * day + 14 * day)
+  })
+
+  it('shows an already-due completed lesson in the dashboard review queue', () => {
+    localStorage.setItem('easy-math-progress-v1', JSON.stringify({
+      xp: 20, completedLessons: ['fraction-basics'], correctAnswers: 0, attempts: 0, streak: 1,
+      reviewSchedule: { 'fraction-basics': { dueAt: Date.now() - 1000, intervalIndex: 0, completedReviews: 0 } },
+    }))
+    render(<App />)
+    expect(screen.getByRole('heading', { name: 'আবার মনে করি' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /পুনরায় মনে করি/ })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /পুনরায় মনে করি/ }))
+    expect(screen.getByRole('heading', { name: 'ভগ্নাংশের শুরু' })).toBeInTheDocument()
+    expect(screen.getByText(/ছয়টি প্রশ্নে শেখা যাচাই/)).toBeInTheDocument()
+    const assessment = getLessonAssessment('fraction-basics', lessonContent['fraction-basics'], 0)
+    for (let index = 0; index < assessment.length; index += 1) {
+      answerMasteryQuestion(assessment[index], index === assessment.length - 1)
+    }
+    expect(screen.getByText('পুনরাবৃত্তি সম্পন্ন হয়েছে।')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /পুনরাবৃত্তি শেষ/ }))
+    expect(screen.queryByRole('heading', { name: 'আবার মনে করি' })).not.toBeInTheDocument()
+    const stored = JSON.parse(localStorage.getItem('easy-math-progress-v1') || '{}')
+    expect(stored.reviewSchedule['fraction-basics'].completedReviews).toBe(1)
+    expect(stored.reviewSchedule['fraction-basics'].dueAt).toBeGreaterThan(Date.now())
   })
 
   it('renders the supplied Sopan wordmark in the app navigation', () => {

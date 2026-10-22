@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, Lightbulb, RotateCcw, Sparkles } from 'lucide-react'
 import type { GuidedLessonContent } from '../data/lessonContent'
-import { getLessonAssessment } from '../data/lessonAssessment'
+import { getLessonAssessment, isLessonAnswerCorrect } from '../data/lessonAssessment'
 import { lessonTeachingNotes } from '../data/lessonTeachingNotes'
 import './LessonWorkshop.css'
 
@@ -11,6 +11,8 @@ type Props = {
   pathTitle: string
   ageLabel: string
   completed: boolean
+  reviewMode?: boolean
+  reviewVariant?: number
   content: GuidedLessonContent
   onBack: () => void
   onComplete: () => void
@@ -30,7 +32,7 @@ const modes: Record<string, string> = {
   'shapes':'shapes','perimeter-area':'shape','angles':'angle','triangles':'triangle',
   'unit-conversion':'unit','order-of-operations':'order'
 }
-export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed, content, onBack, onComplete, onPractice }: Props) {
+export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed, reviewMode = false, reviewVariant = 0, content, onBack, onComplete, onPractice }: Props) {
   const mode = modes[lessonId] ?? 'operations'
   const [position,setPosition] = useState(3)
   const [operation,setOperation] = useState('+')
@@ -55,6 +57,7 @@ export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed
   const [showSteps,setShowSteps] = useState(false)
   const [assessmentIndex,setAssessmentIndex] = useState(0)
   const [assessmentAnswers,setAssessmentAnswers] = useState<Record<string,string>>({})
+  const [orderedStepsByQuestion,setOrderedStepsByQuestion] = useState<Record<string,string[]>>({})
   const [submittedQuestionIds,setSubmittedQuestionIds] = useState<string[]>([])
   const [firstAttemptCorrect,setFirstAttemptCorrect] = useState<Record<string,boolean>>({})
   const [assessmentFinished,setAssessmentFinished] = useState(false)
@@ -62,17 +65,29 @@ export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed
   useEffect(()=> {
     setPosition(3);setOperation('+');setA(6);setB(4);setC(3);setNumerator(1);setDenominator(4);setFactorNumber(12);setPercent(35)
     setLength(6);setWidth(3);setAngle(60);setShapeType('triangle');setFractionOperation('×');setAngleA(55);setAngleB(65);setUnitValue(2);setUnitPrice(25);setQuantity(4);setXValue(5)
-    setShowSteps(false);setAssessmentIndex(0);setAssessmentAnswers({});setSubmittedQuestionIds([]);setFirstAttemptCorrect({});setAssessmentFinished(false);setHintOpen(false)
+    setShowSteps(false);setAssessmentIndex(0);setAssessmentAnswers({});setOrderedStepsByQuestion({});setSubmittedQuestionIds([]);setFirstAttemptCorrect({});setAssessmentFinished(false);setHintOpen(false)
   },[lessonId])
-  const assessmentQuestions = getLessonAssessment(lessonId, { question: content.question, options: content.options, answer: content.answer, explanation: content.explanation })
+  const assessmentQuestions = getLessonAssessment(lessonId, { question: content.question, options: content.options, answer: content.answer, explanation: content.explanation }, reviewVariant)
   const currentQuestion = assessmentQuestions[assessmentIndex]
   const selectedAnswer = assessmentAnswers[currentQuestion?.id ?? ''] ?? ''
+  const orderedCurrentSteps = currentQuestion?.type === 'ordered-steps' ? (orderedStepsByQuestion[currentQuestion.id] ?? [...(currentQuestion.steps ?? [])]) : []
   const submitted = currentQuestion ? submittedQuestionIds.includes(currentQuestion.id) : false
-  const isCorrect = currentQuestion ? selectedAnswer === currentQuestion.answer : false
+  const isCorrect = currentQuestion ? currentQuestion.type === 'ordered-steps'
+    ? orderedCurrentSteps.length === (currentQuestion.correctOrder ?? []).length && orderedCurrentSteps.every((step, index) => step === currentQuestion.correctOrder?.[index])
+    : isLessonAnswerCorrect(currentQuestion, selectedAnswer) : false
+  const canSubmitAnswer = currentQuestion?.type === 'ordered-steps' || Boolean(selectedAnswer.trim())
   const assessmentScore = assessmentQuestions.reduce((score, question) => score + (firstAttemptCorrect[question.id] ? 1 : 0), 0)
   const passMark = Math.ceil(assessmentQuestions.length * 0.8)
   const hasMastered = assessmentFinished && assessmentScore >= passMark
   const teachingNote = lessonTeachingNotes[lessonId]
+  function moveOrderedStep(index: number, direction: -1 | 1) {
+    if (!currentQuestion || currentQuestion.type !== 'ordered-steps') return
+    const steps = [...orderedCurrentSteps]
+    const target = index + direction
+    if (target < 0 || target >= steps.length) return
+    ;[steps[index], steps[target]] = [steps[target], steps[index]]
+    setOrderedStepsByQuestion((previous) => ({ ...previous, [currentQuestion.id]: steps }))
+  }
   const factors = Array.from({length:factorNumber},(_,i)=>i+1).filter(n=>factorNumber%n===0)
   const safeAngleB = Math.min(angleB,179-angleA)
   const model = () => {
@@ -110,13 +125,15 @@ export function LessonWorkshop({ lessonId, title, pathTitle, ageLabel, completed
       {!assessmentFinished&&currentQuestion&&<div className="workshop-question">
         <div className="mastery-progress-row"><span>প্রশ্ন {bn(assessmentIndex+1)} / {bn(assessmentQuestions.length)}</span><span>লক্ষ্য: {bn(passMark)}টি সঠিক</span></div>
         <div className="mastery-progress-track" role="progressbar" aria-label="যাচাইয়ের অগ্রগতি" aria-valuemin={0} aria-valuemax={assessmentQuestions.length} aria-valuenow={assessmentIndex}><span style={{width:((assessmentIndex+1)/assessmentQuestions.length*100)+'%'}}/></div>
-        <h3>{currentQuestion.prompt}</h3>
-        <div className="workshop-options">{currentQuestion.options.map(option=><button key={option} disabled={submitted} className={(selectedAnswer===option?'chosen ':'')+(submitted&&option===currentQuestion.answer?' right':'')+(submitted&&selectedAnswer===option&&!isCorrect?' wrong':'')} onClick={()=>setAssessmentAnswers(previous=>({...previous,[currentQuestion.id]:option}))}>{option}{submitted&&option===currentQuestion.answer&&<Check size={16}/>}</button>)}</div>
-        {!submitted?<button className="button-primary" disabled={!selectedAnswer} onClick={()=>{setSubmittedQuestionIds(previous=>[...previous,currentQuestion.id]);setFirstAttemptCorrect(previous=>({...previous,[currentQuestion.id]:isCorrect}))}}>উত্তর যাচাই করি <ArrowRight size={16}/></button>:<div className={'workshop-feedback '+(isCorrect?'success':'retry')}><strong>{isCorrect?'সঠিক উত্তর। কারণটিও বুঝে নাও।':'এইবার সঠিক হয়নি। সমাধান দেখে আবার শিখো।'}</strong>{!isCorrect&&<p>সঠিক উত্তর: <strong>{currentQuestion.answer}</strong></p>}<p>{currentQuestion.explanation}</p><button className="button-primary" onClick={()=>{if(assessmentIndex===assessmentQuestions.length-1){setAssessmentFinished(true)}else{setAssessmentIndex(index=>index+1)}}}>{assessmentIndex===assessmentQuestions.length-1?'ফলাফল দেখো':'পরের প্রশ্ন'} <ArrowRight size={16}/></button></div>}
+        <span className="assessment-question-type">{currentQuestion.type === 'short-answer' ? 'নিজে উত্তর লিখো' : currentQuestion.type === 'ordered-steps' ? 'ধাপ সঠিক ক্রমে সাজাও' : 'ধারণা ও হিসাব যাচাই'}</span><h3>{currentQuestion.prompt}</h3>
+        {currentQuestion.type === 'short-answer' ? <label className="assessment-text-label">নিজের হিসাব লিখো<input aria-label="নিজের উত্তর লিখো" type="text" inputMode="text" autoComplete="off" value={selectedAnswer} disabled={submitted} onChange={(event) => setAssessmentAnswers(previous => ({...previous,[currentQuestion.id]:event.target.value}))} placeholder="এখানে উত্তর লেখো"/></label>
+        : currentQuestion.type === 'ordered-steps' ? <ol className="assessment-order-list">{orderedCurrentSteps.map((step,index)=><li key={step}><span className="assessment-order-number">{bn(index+1)}</span><p>{step}</p><div className="assessment-order-controls"><button type="button" aria-label={'ধাপ '+bn(index+1)+' উপরে'} disabled={submitted||index===0} onClick={()=>moveOrderedStep(index,-1)}>↑ উপরে</button><button type="button" aria-label={'ধাপ '+bn(index+1)+' নিচে'} disabled={submitted||index===orderedCurrentSteps.length-1} onClick={()=>moveOrderedStep(index,1)}>↓ নিচে</button></div></li>)}</ol>
+        : <div className="workshop-options">{(currentQuestion.options ?? []).map(option=><button key={option} disabled={submitted} className={(selectedAnswer===option?'chosen ':'')+(submitted&&option===currentQuestion.answer?' right':'')+(submitted&&selectedAnswer===option&&!isCorrect?' wrong':'')} onClick={()=>setAssessmentAnswers(previous=>({...previous,[currentQuestion.id]:option}))}>{option}{submitted&&option===currentQuestion.answer&&<Check size={16}/>}</button>)}</div>}
+        {!submitted?<button className="button-primary" disabled={!canSubmitAnswer} onClick={()=>{setSubmittedQuestionIds(previous=>[...previous,currentQuestion.id]);setFirstAttemptCorrect(previous=>({...previous,[currentQuestion.id]:isCorrect}))}}>উত্তর যাচাই করি <ArrowRight size={16}/></button>:<div className={'workshop-feedback '+(isCorrect?'success':'retry')}><strong>{isCorrect?'সঠিক উত্তর। কারণটিও বুঝে নাও।':'এইবার সঠিক হয়নি। সমাধান দেখে আবার শিখো।'}</strong>{!isCorrect&&currentQuestion.type!=='ordered-steps'&&<p>সঠিক উত্তর: <strong>{currentQuestion.answer}</strong></p>}{!isCorrect&&currentQuestion.type==='ordered-steps'&&<div className="assessment-correct-order"><strong>সঠিক ক্রম</strong><ol>{(currentQuestion.correctOrder ?? []).map((step,index)=><li key={step}>{bn(index+1)}. {step}</li>)}</ol></div>}<p>{currentQuestion.explanation}</p>{!isCorrect&&teachingNote&&<aside className="assessment-remediation"><strong>এই পাঠের একটি সাধারণ ভুল</strong><p>{teachingNote.commonError}</p><strong>সংশোধনের উপায়</strong><p>{teachingNote.correction}</p><ol>{teachingNote.workedSteps.slice(0,2).map((step,index)=><li key={index}>{step}</li>)}</ol></aside>}<button className="button-primary" onClick={()=>{if(assessmentIndex===assessmentQuestions.length-1){setAssessmentFinished(true)}else{setAssessmentIndex(index=>index+1)}}}>{assessmentIndex===assessmentQuestions.length-1?'ফলাফল দেখো':'পরের প্রশ্ন'} <ArrowRight size={16}/></button></div>}
       </div>}
-      {assessmentFinished&&<div className={'mastery-result '+(hasMastered?'mastery-pass':'mastery-retry')}><strong>{hasMastered?'পাঠের প্রাথমিক দক্ষতা যাচাই পাস':'আরও অনুশীলন দরকার'}</strong><p>প্রথম চেষ্টায় {bn(assessmentScore)} / {bn(assessmentQuestions.length)}টি সঠিক। পাস করতে অন্তত {bn(passMark)}টি সঠিক দরকার। {hasMastered?'এখন নতুন পরিস্থিতিতে এই ধারণা ব্যবহার করার অনুশীলন চালিয়ে যাও।':'যে প্রশ্নগুলো ভুল হয়েছে, সেগুলোর ব্যাখ্যা আবার পড়ে পুনরায় যাচাই দাও।'}</p>{!hasMastered&&<button className="button-secondary" onClick={()=>{setAssessmentIndex(0);setAssessmentAnswers({});setSubmittedQuestionIds([]);setFirstAttemptCorrect({});setAssessmentFinished(false)}}><RotateCcw size={15}/> আবার যাচাই দাও</button>}</div>}
+      {assessmentFinished&&<div className={'mastery-result '+(hasMastered?'mastery-pass':'mastery-retry')}><strong>{hasMastered?'পাঠের প্রাথমিক দক্ষতা যাচাই পাস':'আরও অনুশীলন দরকার'}</strong><p>প্রথম চেষ্টায় {bn(assessmentScore)} / {bn(assessmentQuestions.length)}টি সঠিক। পাস করতে অন্তত {bn(passMark)}টি সঠিক দরকার। {hasMastered?'এখন নতুন পরিস্থিতিতে এই ধারণা ব্যবহার করার অনুশীলন চালিয়ে যাও।':'যে প্রশ্নগুলো ভুল হয়েছে, সেগুলোর ব্যাখ্যা আবার পড়ে পুনরায় যাচাই দাও।'}</p>{!hasMastered&&<button className="button-secondary" onClick={()=>{setAssessmentIndex(0);setAssessmentAnswers({});setOrderedStepsByQuestion({});setSubmittedQuestionIds([]);setFirstAttemptCorrect({});setAssessmentFinished(false)}}><RotateCcw size={15}/> আবার যাচাই দাও</button>}</div>}
     </section>
-    {assessmentFinished&&<section className="workshop-finish"><div><strong>{hasMastered?(completed?'এই পাঠ আগেই সম্পন্ন করেছ।':'এই পাঠের প্রাথমিক লক্ষ্য পূরণ হয়েছে।'):'পাঠটি এখনো সম্পন্ন হয়নি।'}</strong><p>{hasMastered?'কমপক্ষে ৮০% প্রশ্ন প্রথম চেষ্টায় সঠিক হয়েছে।':'পাসের নম্বর পেলে পাঠ সম্পন্ন করা যাবে। ভুল উত্তরের ব্যাখ্যা দেখে আবার চেষ্টা করো।'}</p></div><button className="button-primary" disabled={!hasMastered} onClick={onComplete}>{completed?'পাঠ সম্পন্ন':'পাঠ শেষ করো'} <Check size={16}/></button></section>}
+    {assessmentFinished&&<section className="workshop-finish"><div><strong>{hasMastered?(reviewMode?'পুনরাবৃত্তি সম্পন্ন হয়েছে।':completed?'এই পাঠ আগেই সম্পন্ন করেছ।':'এই পাঠের প্রাথমিক লক্ষ্য পূরণ হয়েছে।'):'পাঠটি এখনো সম্পন্ন হয়নি।'}</strong><p>{hasMastered?'কমপক্ষে ৮০% প্রশ্ন প্রথম চেষ্টায় সঠিক হয়েছে।':'পাসের নম্বর পেলে পাঠ সম্পন্ন করা যাবে। ভুল উত্তরের ব্যাখ্যা দেখে আবার চেষ্টা করো।'}</p></div><button className="button-primary" disabled={!hasMastered} onClick={onComplete}>{reviewMode?'পুনরাবৃত্তি শেষ':completed?'পাঠ সম্পন্ন':'পাঠ শেষ করো'} <Check size={16}/></button></section>}
     {hintOpen&&<div className="workshop-hint"><Lightbulb size={18}/><span>{content.hint}</span></div>}<div className="workshop-footer"><button className="text-link" onClick={()=>setHintOpen(v=>!v)}><Lightbulb size={15}/>{hintOpen?'ইঙ্গিত লুকাও':'একটু ইঙ্গিত দাও'}</button><button className="text-link" onClick={onPractice}>আরও অনুশীলন করো <ArrowRight size={15}/></button></div>
     <section className="workshop-takeaways"><h2>মনে রাখবে</h2><ul>{content.takeaways.map((item,i)=><li key={i}>{item}</li>)}</ul></section>
   </main>
