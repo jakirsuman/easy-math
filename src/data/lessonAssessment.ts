@@ -115,7 +115,7 @@ const applicationQuestions: Record<string, LessonAssessmentQuestion> = {
   'two-step-equations': { id: 'two-step-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৩x + ৪ = ১৯ হলে x-এর মান কত?', answer: '৫', explanation: 'দুই পাশ থেকে ৪ বিয়োগ করলে ৩x = ১৫; এরপর ৩ দিয়ে ভাগ করলে x = ৫।' },
   'shapes': { id: 'shapes-transfer', type: 'short-answer', responsePurpose: 'application', prompt: 'একটি পঞ্চভুজের কয়টি বাহু থাকে? সংখ্যা লিখো।', answer: '৫', acceptableAnswers: ['৫টি'], explanation: 'পঞ্চভুজের নামেই পাঁচ বোঝায়; এর ৫টি বাহু ও ৫টি শীর্ষবিন্দু থাকে।' },
   'perimeter-area': { id: 'perimeter-transfer', type: 'short-answer', responsePurpose: 'application', prompt: 'দৈর্ঘ্য ৯ সেমি ও প্রস্থ ৪ সেমি আয়তক্ষেত্রের পরিসীমা কত সেমি?', answer: '২৬', acceptableAnswers: ['২৬ সেমি', '২৬'], explanation: 'পরিসীমা = ২ × (দৈর্ঘ্য + প্রস্থ) = ২ × (৯ + ৪) = ২৬ সেমি।' },
-  'angles': { id: 'angles-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '১৮০°-এর সঙ্গে যোগ করলে ১২৫° পূর্ণ হয়। অন্য কোণটি কত ডিগ্রি?', answer: '৫৫', acceptableAnswers: ['৫৫°', '৫৫'], explanation: '১৮০° − ১২৫° = ৫৫°। দুটি কোণের যোগ ১৮০°।' },
+  'angles': { id: 'angles-transfer', type: 'short-answer', responsePurpose: 'application', prompt: 'একটি সরলকোণে ১২৫° অংশ আছে। সরলকোণের বাকি অংশ কত ডিগ্রি?', answer: '৫৫', acceptableAnswers: ['৫৫°', '৫৫'], explanation: '১৮০° − ১২৫° = ৫৫°। দুটি কোণের যোগ ১৮০°।' },
   'unit-conversion': { id: 'unit-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '২.৪ মিটার কত সেন্টিমিটার?', answer: '২৪০', acceptableAnswers: ['২৪০ সেমি', '২৪০'], explanation: '১ মিটার = ১০০ সেমি; তাই ২.৪ × ১০০ = ২৪০ সেমি।' },
   'triangles': { id: 'triangle-transfer', type: 'short-answer', responsePurpose: 'application', prompt: 'একটি ত্রিভুজের দুটি কোণ ৩৫° ও ৮৫°। তৃতীয় কোণ কত ডিগ্রি?', answer: '৬০', acceptableAnswers: ['৬০°', '৬০'], explanation: 'তিন কোণের যোগ ১৮০°; ১৮০° − ৩৫° − ৮৫° = ৬০°।' },
 }
@@ -138,7 +138,7 @@ export function isLessonAnswerCorrect(question: LessonAssessmentQuestion, respon
   return question.answer === response
 }
 
-export function getLessonAssessment(lessonId: string, base: BaseQuestion): LessonAssessmentQuestion[] {
+export function getLessonAssessment(lessonId: string, base: BaseQuestion, reviewVariant = 0): LessonAssessmentQuestion[] {
   const byId = new Map<string, LessonAssessmentQuestion>(
     practiceQuestions.map((q) => [q.id, {
       id: q.id,
@@ -151,7 +151,10 @@ export function getLessonAssessment(lessonId: string, base: BaseQuestion): Lesso
   )
   for (const question of extraQuestions) byId.set(question.id, { ...question, type: 'choice' })
 
-  const selected = (questionIdsByLesson[lessonId] ?? []).map((id) => byId.get(id)).filter((q): q is LessonAssessmentQuestion => Boolean(q))
+  const mappedIds = questionIdsByLesson[lessonId] ?? []
+  const shift = mappedIds.length ? ((Math.trunc(reviewVariant) % mappedIds.length) + mappedIds.length) % mappedIds.length : 0
+  const rotatedIds = [...mappedIds.slice(shift), ...mappedIds.slice(0, shift)]
+  const selected = rotatedIds.map((id) => byId.get(id)).filter((q): q is LessonAssessmentQuestion => Boolean(q))
   const seen = new Set([base.question])
   const unique = selected.filter((question) => {
     if (seen.has(question.prompt)) return false
