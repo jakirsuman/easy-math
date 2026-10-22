@@ -217,13 +217,46 @@ export function getLessonAssessment(lessonId: string, base: BaseQuestion, review
   }
 
   const core: LessonAssessmentQuestion = { id: `${lessonId}-core`, type: 'choice', prompt: base.question, options: base.options, answer: base.answer, explanation: base.explanation }
-  const constructedResponse = applicationQuestions[lessonId]
+  const reviewTopics: Record<string, string> = {
+    'place-value': 'numbers', 'number-line': 'numbers', 'negative-numbers': 'numbers',
+    'operations': 'arithmetic', 'multiplication-groups': 'arithmetic', 'factors-multiples': 'arithmetic',
+    'order-of-operations': 'arithmetic', 'hcf-lcm': 'arithmetic', 'averages': 'arithmetic',
+    'fraction-basics': 'fractions', 'equivalent-fractions': 'fractions', 'fraction-practice': 'fractions',
+    'fraction-addition': 'fractions', 'fraction-multiply-divide': 'fractions',
+    'decimals': 'decimals', 'decimal-operations': 'decimals', 'rounding-decimals': 'decimals',
+    'percentages': 'percentages', 'ratio': 'ratio', 'proportion': 'ratio',
+    'variables': 'algebra', 'linear-equations': 'algebra', 'two-step-equations': 'algebra',
+    'shapes': 'geometry', 'perimeter-area': 'geometry', 'angles': 'geometry', 'unit-conversion': 'geometry', 'triangles': 'geometry',
+  }
+  const constructedResponse = reviewVariant > 0 ? (() => {
+    const topic = reviewTopics[lessonId]
+    const usedIds = new Set([...mappedIds, ...unique.map((question) => question.id)])
+    const usedPrompts = new Set([base.question, ...unique.map((question) => question.prompt)])
+    const candidates = practiceQuestions.filter((question) =>
+      question.topic === topic && !usedIds.has(question.id) && !usedPrompts.has(question.prompt),
+    )
+    if (candidates.length === 0) return applicationQuestions[lessonId]
+    const candidate = candidates[(Math.trunc(reviewVariant) - 1) % candidates.length]
+    return {
+      id: lessonId + '-review-application-' + reviewVariant,
+      type: 'short-answer' as const,
+      responsePurpose: 'application' as const,
+      prompt: 'বিকল্প না দেখে উত্তর লিখো: ' + candidate.prompt,
+      answer: candidate.answer,
+      acceptableAnswers: [candidate.answer],
+      explanation: candidate.explanation,
+    }
+  })() : applicationQuestions[lessonId]
   const note = lessonTeachingNotes[lessonId]
   const orderedSteps: LessonAssessmentQuestion | undefined = note ? {
-    id: `${lessonId}-order-steps`,
+    id: lessonId + '-order-steps',
     type: 'ordered-steps',
     prompt: 'সমাধানের ধাপগুলো সঠিক ক্রমে সাজাও। উপরে/নিচে বোতাম ব্যবহার করো।',
-    steps: [...note.workedSteps].reverse(),
+    steps: (() => {
+      const reversed = [...note.workedSteps].reverse()
+      const offset = reversed.length ? Math.trunc(reviewVariant) % reversed.length : 0
+      return [...reversed.slice(offset), ...reversed.slice(0, offset)]
+    })(),
     correctOrder: [...note.workedSteps],
     answer: [...note.workedSteps].join('|'),
     explanation: 'সমাধানের ধাপ সাজানোর সময় আগের ধাপের ফল পরের ধাপে ব্যবহার হয়। সঠিক ক্রমে সাজিয়ে প্রতিটি ধাপের কারণও বোঝার চেষ্টা করো.',
