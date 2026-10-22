@@ -3,9 +3,12 @@ import { practiceQuestions } from './expandedQuestions'
 export type LessonAssessmentQuestion = {
   id: string
   prompt: string
-  options: readonly string[]
+  type: 'choice' | 'short-answer'
+  options?: readonly string[]
   answer: string
+  acceptableAnswers?: readonly string[]
   explanation: string
+  responsePurpose?: 'application' | 'error-correction'
 }
 
 type BaseQuestion = {
@@ -83,10 +86,60 @@ const questionIdsByLesson: Record<string, string[]> = {
   'triangles': ['q19', 'extra-g26', 'extra-g31', 'tri-1'],
 }
 
+const applicationQuestions: Record<string, LessonAssessmentQuestion> = {
+  'place-value': { id: 'place-value-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৪,০৬,০২১ সংখ্যায় ৬-এর স্থানীয় মান কত? উত্তরটি নিজে লিখো।', options: undefined, answer: '৬,০০০', acceptableAnswers: ['৬০০০'], explanation: '৬ হাজারের ঘরে আছে, তাই স্থানীয় মান ৬ × ১,০০০ = ৬,০০০।' },
+  'number-line': { id: 'number-line-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '−৫ থেকে সংখ্যারেখায় ডানে ৮ ধাপ গেলে কোন সংখ্যায় পৌঁছাবে?', answer: '৩', explanation: '−৫ থেকে ডানে ৫ ধাপ গেলে শূন্য, তারপর আরও ৩ ধাপে ৩। তাই −৫ + ৮ = ৩।' },
+  'operations': { id: 'operations-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৫৬টি আম ৭ জনের মধ্যে সমান ভাগে দিলে প্রত্যেকে কয়টি আম পাবে?', answer: '৮', acceptableAnswers: ['৮টি'], explanation: 'সমান ভাগ করতে ভাগ ব্যবহার করি: ৫৬ ÷ ৭ = ৮টি আম।' },
+  'multiplication-groups': { id: 'multiplication-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৮টি দলে প্রতিটিতে ৭টি করে পেন্সিল থাকলে মোট পেন্সিল কতটি?', answer: '৫৬', acceptableAnswers: ['৫৬টি'], explanation: 'দলের সংখ্যা × প্রতি দলে পেন্সিল = ৮ × ৭ = ৫৬টি।' },
+  'factors-multiples': { id: 'factors-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৯-এর ষষ্ঠ ধনাত্মক গুণিতক কত?', answer: '৫৪', explanation: 'ধনাত্মক গুণিতকগুলো হলো ৯, ১৮, ২৭, ৩৬, ৪৫, ৫৪। ষষ্ঠটি ৫৪।' },
+  'negative-numbers': { id: 'negative-transfer', type: 'short-answer', responsePurpose: 'application', prompt: 'তাপমাত্রা ২°C থেকে ৭°C কমে গেলে নতুন তাপমাত্রা কত হবে?', answer: '−৫', acceptableAnswers: ['−৫°', '-5'], explanation: '২ থেকে ৭ বিয়োগ করলে ২ − ৭ = −৫°C। শূন্যের নিচে নামলে ঋণাত্মক চিহ্ন থাকে।' },
+  'order-of-operations': { id: 'order-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '২৪ ÷ ৬ × ২ হিসাবটি সঠিক ক্রমে করে উত্তর লিখো।', answer: '৮', explanation: 'ভাগ ও গুণ একই স্তরের ক্রিয়া, তাই বাম দিক থেকে: ২৪ ÷ ৬ = ৪, তারপর ৪ × ২ = ৮।' },
+  'hcf-lcm': { id: 'hcf-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '১২ ও ৩০-এর গ.সা.গু. কত?', answer: '৬', explanation: '১২ ও ৩০-এর সাধারণ গুণনীয়ক ১, ২, ৩, ৬; এদের মধ্যে সবচেয়ে বড় ৬।' },
+  'averages': { id: 'average-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৫, ৭, ৯ ও ১১-এর গড় কত?', answer: '৮', explanation: 'যোগফল ৫ + ৭ + ৯ + ১১ = ৩২। চারটি সংখ্যা, তাই গড় ৩২ ÷ ৪ = ৮।' },
+  'fraction-basics': { id: 'fraction-basics-transfer', type: 'short-answer', responsePurpose: 'application', prompt: 'একটি পিৎজা ৯টি সমান ভাগে কাটা হয়েছে। ৪টি ভাগ নেওয়া হলে ভগ্নাংশটি লেখো।', answer: '৪/৯', acceptableAnswers: ['৪/৯', '4/9'], explanation: 'মোট সমান ভাগ ৯, তাই হর ৯; নেওয়া ভাগ ৪, তাই লব ৪। ভগ্নাংশ ৪/৯।' },
+  'equivalent-fractions': { id: 'equivalent-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৮/১২ ভগ্নাংশটি সরলতম আকারে লেখো।', answer: '২/৩', acceptableAnswers: ['২/৩', '2/3'], explanation: 'লব ও হর দুটিকে ৪ দিয়ে ভাগ করি: ৮/১২ = ২/৩।' },
+  'fraction-practice': { id: 'fraction-practice-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '১২টি সমান ঘরের মধ্যে ৫টি রঙ করা। রঙ করা অংশের ভগ্নাংশ লেখো।', answer: '৫/১২', acceptableAnswers: ['৫/১২', '5/12'], explanation: 'মোট সমান ঘর ১২টি, রঙ করা ৫টি; তাই ভগ্নাংশ ৫/১২।' },
+  'decimals': { id: 'decimals-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '০.৭৫-কে সরলতম ভগ্নাংশে লেখো।', answer: '৩/৪', acceptableAnswers: ['৩/৪', '3/4'], explanation: '০.৭৫ = ৭৫/১০০। লব ও হরকে ২৫ দিয়ে ভাগ করলে ৩/৪।' },
+  'percentages': { id: 'percent-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '১৮০-এর ১৫% কত?', answer: '২৭', explanation: '১০% = ১৮ এবং ৫% = ৯। তাই ১৫% = ১৮ + ৯ = ২৭।' },
+  'fraction-addition': { id: 'fraction-addition-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৩/৮ + ২/৮ = কত? সরলতম ভগ্নাংশে উত্তর দাও।', answer: '৫/৮', acceptableAnswers: ['৫/৮', '5/8'], explanation: 'হর একই, তাই লব যোগ করি: (৩ + ২)/৮ = ৫/৮।' },
+  'decimal-operations': { id: 'decimal-operation-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৬.০০ − ২.৭৫ = কত?', answer: '৩.২৫', acceptableAnswers: ['৩.২৫', '3.25'], explanation: 'দশমিক বিন্দু মিলিয়ে ৬.০০ − ২.৭৫ = ৩.২৫।' },
+  'fraction-multiply-divide': { id: 'fraction-multiply-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '২/৩ × ৩/৪ = কত? সরলতম ভগ্নাংশে উত্তর দাও।', answer: '১/২', acceptableAnswers: ['১/২', '1/2', '২/৪', '2/4'], explanation: '(২×৩)/(৩×৪) = ৬/১২ = ১/২।' },
+  'rounding-decimals': { id: 'rounding-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৭.৮৬-কে এক ঘর দশমিক পর্যন্ত পূর্ণ করো।', answer: '৭.৯', acceptableAnswers: ['৭.৯', '7.9'], explanation: 'লক্ষ্য দশমাংশের পরের অঙ্ক ৬, যা ৫ বা বেশি; তাই ৭.৮ থেকে এক ধাপ বাড়িয়ে ৭.৯।' },
+  'ratio': { id: 'ratio-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৪:৬ অনুপাতটি সরলতম আকারে লেখো।', answer: '২:৩', acceptableAnswers: ['২:৩', '2:3', '২:৩'], explanation: 'উভয় অংশকে ২ দিয়ে ভাগ করলে ৪:৬ = ২:৩।' },
+  'variables': { id: 'variables-transfer', type: 'short-answer', responsePurpose: 'application', prompt: 'x = ৬ হলে ৩x − ২-এর মান কত?', answer: '১৬', explanation: 'x-এর জায়গায় ৬ বসাও: ৩ × ৬ − ২ = ১৮ − ২ = ১৬।' },
+  'linear-equations': { id: 'linear-transfer', type: 'short-answer', responsePurpose: 'application', prompt: 'x + ৮ = ২১ হলে x-এর মান কত?', answer: '১৩', explanation: 'দুই পাশ থেকে ৮ বিয়োগ করি: x = ২১ − ৮ = ১৩। যাচাই: ১৩ + ৮ = ২১।' },
+  'proportion': { id: 'proportion-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৫টি খাতার দাম ৭৫ টাকা হলে একই দরে ৭টি খাতার দাম কত টাকা?', answer: '১০৫', acceptableAnswers: ['১০৫', '১০৫ টাকা'], explanation: 'একটি খাতার দাম ৭৫ ÷ ৫ = ১৫ টাকা। সাতটির দাম ১৫ × ৭ = ১০৫ টাকা।' },
+  'two-step-equations': { id: 'two-step-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '৩x + ৪ = ১৯ হলে x-এর মান কত?', answer: '৫', explanation: 'দুই পাশ থেকে ৪ বিয়োগ করলে ৩x = ১৫; এরপর ৩ দিয়ে ভাগ করলে x = ৫।' },
+  'shapes': { id: 'shapes-transfer', type: 'short-answer', responsePurpose: 'application', prompt: 'একটি পঞ্চভুজের কয়টি বাহু থাকে? সংখ্যা লিখো।', answer: '৫', acceptableAnswers: ['৫টি'], explanation: 'পঞ্চভুজের নামেই পাঁচ বোঝায়; এর ৫টি বাহু ও ৫টি শীর্ষবিন্দু থাকে।' },
+  'perimeter-area': { id: 'perimeter-transfer', type: 'short-answer', responsePurpose: 'application', prompt: 'দৈর্ঘ্য ৯ সেমি ও প্রস্থ ৪ সেমি আয়তক্ষেত্রের পরিসীমা কত সেমি?', answer: '২৬', acceptableAnswers: ['২৬ সেমি', '২৬'], explanation: 'পরিসীমা = ২ × (দৈর্ঘ্য + প্রস্থ) = ২ × (৯ + ৪) = ২৬ সেমি।' },
+  'angles': { id: 'angles-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '১৮০°-এর সঙ্গে যোগ করলে ১২৫° পূর্ণ হয়। অন্য কোণটি কত ডিগ্রি?', answer: '৫৫', acceptableAnswers: ['৫৫°', '৫৫'], explanation: '১৮০° − ১২৫° = ৫৫°। দুটি কোণের যোগ ১৮০°।' },
+  'unit-conversion': { id: 'unit-transfer', type: 'short-answer', responsePurpose: 'application', prompt: '২.৪ মিটার কত সেন্টিমিটার?', answer: '২৪০', acceptableAnswers: ['২৪০ সেমি', '২৪০'], explanation: '১ মিটার = ১০০ সেমি; তাই ২.৪ × ১০০ = ২৪০ সেমি।' },
+  'triangles': { id: 'triangle-transfer', type: 'short-answer', responsePurpose: 'application', prompt: 'একটি ত্রিভুজের দুটি কোণ ৩৫° ও ৮৫°। তৃতীয় কোণ কত ডিগ্রি?', answer: '৬০', acceptableAnswers: ['৬০°', '৬০'], explanation: 'তিন কোণের যোগ ১৮০°; ১৮০° − ৩৫° − ৮৫° = ৬০°।' },
+}
+
+export function normalizeLessonAnswer(value: string): string {
+  const latinDigits = value.replace(/[০-৯]/g, (digit) => String('০১২৩৪৫৬৭৮৯'.indexOf(digit)))
+  return latinDigits.toLocaleLowerCase()
+    .replace(/কিলোমিটার|সেন্টিমিটার|কিলোগ্রাম|ডিগ্রি|সেমি|মিটার|গ্রাম|কেজি|টাকা|জন|টি|মি|কিমি|°/g, '')
+    .replace(/[\s,٬]/g, '')
+    .replace(/[−–]/g, '-')
+    .replace(/×/g, '*')
+    .replace(/÷/g, '/')
+}
+
+export function isLessonAnswerCorrect(question: LessonAssessmentQuestion, response: string): boolean {
+  if (question.type === 'short-answer') {
+    const accepted = question.acceptableAnswers ?? [question.answer]
+    return accepted.some((answer) => normalizeLessonAnswer(answer) === normalizeLessonAnswer(response))
+  }
+  return question.answer === response
+}
+
 export function getLessonAssessment(lessonId: string, base: BaseQuestion): LessonAssessmentQuestion[] {
   const byId = new Map<string, LessonAssessmentQuestion>(
     practiceQuestions.map((q) => [q.id, {
       id: q.id,
+      type: 'choice',
       prompt: q.prompt,
       options: q.options,
       answer: q.answer,
@@ -101,7 +154,7 @@ export function getLessonAssessment(lessonId: string, base: BaseQuestion): Lesso
     if (seen.has(question.prompt)) return false
     seen.add(question.prompt)
     return true
-  }).slice(0, 4)
+  }).slice(0, 3)
 
   if (unique.length < 4) {
     const topicByLesson: Record<string, string> = {
@@ -124,5 +177,7 @@ export function getLessonAssessment(lessonId: string, base: BaseQuestion): Lesso
     }
   }
 
-  return [{ id: `${lessonId}-core`, prompt: base.question, options: base.options, answer: base.answer, explanation: base.explanation }, ...unique]
+  const core: LessonAssessmentQuestion = { id: `${lessonId}-core`, type: 'choice', prompt: base.question, options: base.options, answer: base.answer, explanation: base.explanation }
+  const constructedResponse = applicationQuestions[lessonId]
+  return [core, ...unique, ...(constructedResponse ? [constructedResponse] : [])]
 }
