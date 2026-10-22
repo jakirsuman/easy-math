@@ -293,6 +293,22 @@ describe('Easy Math learning flow', () => {
     expect(screen.getByRole('button', { name: /পাঠ শেষ করো/ })).toBeEnabled()
   })
 
+  it('shows misconception-specific remediation after an incorrect lesson answer', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: '১০–১১ বছর' }))
+    fireEvent.click(screen.getByRole('button', { name: 'দশমিক সংখ্যা খুলুন' }))
+    const assessment = getLessonAssessment('decimals', lessonContent.decimals)
+    const wrong = Array.from(document.querySelectorAll('.workshop-question .workshop-options button'))
+      .find((button) => button.textContent?.trim() !== assessment[0].answer)
+    expect(wrong).toBeDefined()
+    fireEvent.click(wrong!)
+    fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
+    expect(screen.getByText('এই পাঠের একটি সাধারণ ভুল')).toBeInTheDocument()
+    expect(screen.getByText(lessonTeachingNotes.decimals.commonError)).toBeInTheDocument()
+    expect(screen.getByText(lessonTeachingNotes.decimals.correction)).toBeInTheDocument()
+  })
+
   it('rotates supplementary questions after a successful spaced-review cycle', () => {
     const base = lessonContent['decimals']
     const first = getLessonAssessment('decimals', base, 0)
@@ -341,6 +357,16 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(screen.getByRole('button', { name: /পুনরায় মনে করি/ }))
     expect(screen.getByRole('heading', { name: 'ভগ্নাংশের শুরু' })).toBeInTheDocument()
     expect(screen.getByText(/ছয়টি প্রশ্নে শেখা যাচাই/)).toBeInTheDocument()
+    const assessment = getLessonAssessment('fraction-basics', lessonContent['fraction-basics'], 0)
+    for (let index = 0; index < assessment.length; index += 1) {
+      answerMasteryQuestion(assessment[index], index === assessment.length - 1)
+    }
+    expect(screen.getByText('পুনরাবৃত্তি সম্পন্ন হয়েছে।')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /পুনরাবৃত্তি শেষ/ }))
+    expect(screen.queryByRole('heading', { name: 'আবার মনে করি' })).not.toBeInTheDocument()
+    const stored = JSON.parse(localStorage.getItem('easy-math-progress-v1') || '{}')
+    expect(stored.reviewSchedule['fraction-basics'].completedReviews).toBe(1)
+    expect(stored.reviewSchedule['fraction-basics'].dueAt).toBeGreaterThan(Date.now())
   })
 
   it('renders the supplied Sopan wordmark in the app navigation', () => {
