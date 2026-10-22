@@ -149,7 +149,7 @@ export function getLessonAssessment(lessonId: string, base: BaseQuestion): Lesso
       explanation: q.explanation,
     }]),
   )
-  for (const question of extraQuestions) byId.set(question.id, question)
+  for (const question of extraQuestions) byId.set(question.id, { ...question, type: 'choice' })
 
   const selected = (questionIdsByLesson[lessonId] ?? []).map((id) => byId.get(id)).filter((q): q is LessonAssessmentQuestion => Boolean(q))
   const seen = new Set([base.question])
@@ -159,7 +159,7 @@ export function getLessonAssessment(lessonId: string, base: BaseQuestion): Lesso
     return true
   }).slice(0, 3)
 
-  if (unique.length < 4) {
+  if (unique.length < 3) {
     const topicByLesson: Record<string, string> = {
       'place-value': 'numbers', 'number-line': 'numbers', 'negative-numbers': 'numbers',
       'operations': 'arithmetic', 'multiplication-groups': 'arithmetic', 'factors-multiples': 'arithmetic',
@@ -173,7 +173,7 @@ export function getLessonAssessment(lessonId: string, base: BaseQuestion): Lesso
     }
     const topic = topicByLesson[lessonId]
     for (const q of practiceQuestions) {
-      if (unique.length >= 4) break
+      if (unique.length >= 3) break
       if (q.topic !== topic || seen.has(q.prompt)) continue
       seen.add(q.prompt)
       unique.push({ id: q.id, prompt: q.prompt, options: q.options, answer: q.answer, explanation: q.explanation })
