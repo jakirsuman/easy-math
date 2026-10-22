@@ -332,6 +332,18 @@ describe('Easy Math learning flow', () => {
     expect(isLessonAnswerCorrect(question, '২৪')).toBe(false)
   })
 
+  it('varies review application prompts and step arrangements for every lesson', () => {
+    const lessons = learningPaths.flatMap((path) => path.lessons)
+    for (const lesson of lessons) {
+      const base = getLessonAssessment(lesson.id, lessonContent[lesson.id], 0)
+      const review = getLessonAssessment(lesson.id, lessonContent[lesson.id], 1)
+      expect(review, lesson.id).toHaveLength(6)
+      expect(review[4].prompt, lesson.id).not.toBe(base[4].prompt)
+      expect(review[4].type, lesson.id).toBe('short-answer')
+      expect(review[5].steps, lesson.id).not.toEqual(base[5].steps)
+      expect(review[5].correctOrder, lesson.id).toEqual(lessonTeachingNotes[lesson.id].workedSteps)
+    }
+  })
   it('accepts equivalent fraction and decimal forms in typed mastery answers', () => {
     const fraction = getLessonAssessment('equivalent-fractions', lessonContent['equivalent-fractions']).find((item) => item.type === 'short-answer')!
     expect(isLessonAnswerCorrect(fraction, '৪/৬')).toBe(true)
