@@ -11,23 +11,40 @@ import { areEquivalentFractions } from './math/fractions'
 import { lessonContent } from './data/lessonContent'
 import { DiscoveryLesson } from './components/DiscoveryLesson'
 import { LessonWorkshop } from './components/LessonWorkshop'
+import { advanceReviewSchedule, isReviewDue, scheduleFirstReview, type SpacedReviewRecord } from './math/spacedReview'
 
 type View = 'home' | 'learn' | 'lesson' | 'practice' | 'lab' | 'progress'
-type StoredProgress = { xp: number; completedLessons: string[]; correctAnswers: number; attempts: number; streak: number }
+type StoredProgress = { xp: number; completedLessons: string[]; correctAnswers: number; attempts: number; streak: number; reviewSchedule: Record<string, SpacedReviewRecord> }
 const STORAGE_KEY = 'easy-math-progress-v1'
-const defaultProgress: StoredProgress = { xp: 0, completedLessons: [], correctAnswers: 0, attempts: 0, streak: 1 }
+const defaultProgress: StoredProgress = { xp: 0, completedLessons: [], correctAnswers: 0, attempts: 0, streak: 1, reviewSchedule: {} }
 
 function readProgress(): StoredProgress {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return defaultProgress
     const parsed = JSON.parse(raw) as Partial<StoredProgress>
+    const completedLessons = Array.isArray(parsed.completedLessons) ? parsed.completedLessons.filter((x): x is string => typeof x === 'string') : []
+    const storedSchedule = parsed.reviewSchedule && typeof parsed.reviewSchedule === 'object' ? parsed.reviewSchedule as Record<string, SpacedReviewRecord> : {}
+    const reviewSchedule: Record<string, SpacedReviewRecord> = {}
+    for (const lessonId of completedLessons) {
+      const record = storedSchedule[lessonId]
+      if (record && Number.isFinite(record.dueAt) && Number.isFinite(record.intervalIndex) && Number.isFinite(record.completedReviews)) {
+        reviewSchedule[lessonId] = {
+          dueAt: record.dueAt,
+          intervalIndex: Math.max(0, Math.min(3, record.intervalIndex)),
+          completedReviews: Math.max(0, record.completedReviews),
+        }
+      } else {
+        reviewSchedule[lessonId] = scheduleFirstReview(Date.now())
+      }
+    }
     return {
       xp: Number.isFinite(parsed.xp) ? Math.max(0, parsed.xp!) : 0,
-      completedLessons: Array.isArray(parsed.completedLessons) ? parsed.completedLessons.filter((x): x is string => typeof x === 'string') : [],
+      completedLessons,
       correctAnswers: Number.isFinite(parsed.correctAnswers) ? Math.max(0, parsed.correctAnswers!) : 0,
       attempts: Number.isFinite(parsed.attempts) ? Math.max(0, parsed.attempts!) : 0,
       streak: Number.isFinite(parsed.streak) ? Math.max(0, parsed.streak!) : 1,
+      reviewSchedule,
     }
   } catch {
     return defaultProgress
@@ -59,6 +76,7 @@ function App() {
   const [view, setView] = useState<View>('home')
   const [activePath, setActivePath] = useState<LearningPath>(learningPaths[1])
   const [activeLesson, setActiveLesson] = useState('fraction-basics')
+  const [activeLessonReview, setActiveLessonReview] = useState(false)
   const [progress, setProgress] = useState<StoredProgress>(readProgress)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -69,9 +87,10 @@ function App() {
   const completedCount = progress.completedLessons.length
   const totalLessons = learningPaths.reduce((sum, path) => sum + path.lessons.length, 0)
 
-  function openLesson(path: LearningPath, lessonId: string) {
+  function openLesson(path: LearningPath, lessonId: string, reviewMode = false) {
     setActivePath(path)
     setActiveLesson(lessonId)
+    setActiveLessonReview(reviewMode)
     setView('lesson')
     setMobileMenuOpen(false)
   }
@@ -79,7 +98,23 @@ function App() {
   function completeLesson(lessonId: string, earnedXp = 20) {
     setProgress((current) => {
       if (current.completedLessons.includes(lessonId)) return current
-      return { ...current, completedLessons: [...current.completedLessons, lessonId], xp: current.xp + earnedXp }
+      return {
+        ...current,
+        completedLessons: [...current.completedLessons, lessonId],
+        reviewSchedule: { ...current.reviewSchedule, [lessonId]: current.reviewSchedule[lessonId] ?? scheduleFirstReview(Date.now()) },
+        xp: current.xp + earnedXp,
+      }
+    })
+  }
+
+  function completeReview(lessonId: string) {
+    setProgress((current) => {
+      const schedule = current.reviewSchedule[lessonId] ?? scheduleFirstReview(Date.now() - 24 * 60 * 60 * 1000)
+      return {
+        ...current,
+        reviewSchedule: { ...current.reviewSchedule, [lessonId]: advanceReviewSchedule(schedule, Date.now()) },
+        xp: current.xp + 10,
+      }
     })
   }
 
@@ -141,7 +176,7 @@ function App() {
 
         {view === 'home' && <HomeView progress={progress} completedCount={completedCount} onNavigate={navigate} onOpenLesson={openLesson} />}
         {view === 'learn' && <LearnView completed={progress.completedLessons} onOpenLesson={openLesson} />}
-        {view === 'lesson' && <LessonView lessonId={activeLesson} path={activePath} completed={progress.completedLessons.includes(activeLesson)} onBack={() => navigate('learn')} onComplete={() => completeLesson(activeLesson)} onPractice={() => navigate('practice')} />}
+        {view === 'lesson' && <LessonView lessonId={activeLesson} path={activePath} completed={progress.completedLessons.includes(activeLesson)} reviewMode={activeLessonReview} onBack={() => navigate('learn')} onComplete={() => activeLessonReview ? completeReview(activeLesson) : completeLesson(activeLesson)} onPractice={() => navigate('practice')} />}
         {view === 'practice' && <PracticeView onRecord={recordAnswer} onFinish={() => navigate('progress')} />}
         {view === 'lab' && <LabView />}
         {view === 'progress' && <ProgressView progress={progress} completedCount={completedCount} totalLessons={totalLessons} onReset={() => { setProgress(defaultProgress); localStorage.removeItem(STORAGE_KEY) }} />}
@@ -153,8 +188,11 @@ function App() {
   )
 }
 
-function HomeView({ progress, completedCount, onNavigate, onOpenLesson }: { progress: StoredProgress; completedCount: number; onNavigate: (view: View) => void; onOpenLesson: (path: LearningPath, id: string) => void }) {
+function HomeView({ progress, completedCount, onNavigate, onOpenLesson }: { progress: StoredProgress; completedCount: number; onNavigate: (view: View) => void; onOpenLesson: (path: LearningPath, id: string, reviewMode?: boolean) => void }) {
   const nextLesson = learningPaths.flatMap((path) => path.lessons.map((lesson) => ({ path, lesson }))).find(({ lesson }) => !progress.completedLessons.includes(lesson.id)) ?? { path: learningPaths[0], lesson: learningPaths[0].lessons[0] }
+  const dueReviews = learningPaths.flatMap((path) => path.lessons.map((lesson) => ({ path, lesson, schedule: progress.reviewSchedule[lesson.id] })))
+    .filter(({ lesson, schedule }) => progress.completedLessons.includes(lesson.id) && isReviewDue(schedule, Date.now()))
+    .sort((a, b) => (a.schedule?.dueAt ?? 0) - (b.schedule?.dueAt ?? 0))
   return (
     <div className="page-content">
       <section className="welcome-row">
@@ -185,6 +223,11 @@ function HomeView({ progress, completedCount, onNavigate, onOpenLesson }: { prog
         <StatCard icon={<Flame size={19} />} label="ধারাবাহিকতা" value={String(progress.streak) + ' দিন'} detail="আজকের লক্ষ্য পূরণ করো" tone="orange" />
       </section>
 
+      {dueReviews.length > 0 && <section className="section-block spaced-review-section" aria-label="সময় হলে আবার মনে করার পাঠ">
+        <div className="section-heading"><div><span className="eyebrow">আগে শেখা মনে রাখি</span><h2>আবার মনে করি</h2></div><span className="review-count">{dueReviews.length}টি পাঠ</span></div>
+        <p className="review-intro">কিছুদিন পর ফিরে এলে শেখা বিষয়টি মনে আছে কি না যাচাই করা যায়। আজকের পুনরালোচনায় আবার ছয়টি ছোট কাজ করবে—উত্তর মুখস্থ নয়, ধারণা মনে করার চেষ্টা করো।</p>
+        <div className="spaced-review-list">{dueReviews.slice(0, 3).map(({ path, lesson, schedule }) => <article className="spaced-review-row" key={lesson.id}><div><strong>{lesson.title}</strong><small>{schedule?.completedReviews ? 'আগেও পুনরালোচনা হয়েছে' : 'প্রথম পুনরালোচনার সময়'} · {lesson.subtitle}</small></div><button type="button" className="button-secondary" onClick={() => onOpenLesson(path, lesson.id, true)}>পুনরায় মনে করি <ArrowRight size={15} /></button></article>)}</div>
+      </section>}
       <section className="section-block">
         <div className="section-heading"><div><span className="eyebrow">তোমার পরিকল্পনা</span><h2>শেখার পথ</h2></div><button className="text-link" onClick={() => onNavigate('learn')}>সব দেখো <ArrowRight size={16} /></button></div>
         <div className="path-grid">
@@ -233,15 +276,15 @@ function LearnView({ completed, onOpenLesson }: { completed: string[]; onOpenLes
   </div>
 }
 
-function LessonView({ lessonId, path, completed, onBack, onComplete, onPractice }: { lessonId: string; path: LearningPath; completed: boolean; onBack: () => void; onComplete: () => void; onPractice: () => void }) {
+function LessonView({ lessonId, path, completed, reviewMode, onBack, onComplete, onPractice }: { lessonId: string; path: LearningPath; completed: boolean; reviewMode: boolean; onBack: () => void; onComplete: () => void; onPractice: () => void }) {
   const lesson = path.lessons.find((item) => item.id === lessonId)
   const content = lessonContent[lessonId] ?? lessonContent['fraction-basics']
 
   if (['place-value', 'multiplication-groups', 'fraction-basics'].includes(lessonId)) {
-    return <DiscoveryLesson lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} />
+    return <DiscoveryLesson lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} reviewMode={reviewMode} />
   }
 
-  return <LessonWorkshop lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} content={content} />
+  return <LessonWorkshop lessonId={lessonId} title={lesson?.title ?? 'গণিতের পাঠ'} pathTitle={path.title} ageLabel={ageBandLabels[lesson?.ageBand ?? '8-9']} onBack={onBack} onComplete={onComplete} onPractice={onPractice} completed={completed} content={content} reviewMode={reviewMode} />
 }
 
 function PracticeView({ onRecord, onFinish }: { onRecord: (correct: boolean) => void; onFinish: () => void }) {
