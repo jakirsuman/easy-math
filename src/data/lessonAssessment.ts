@@ -133,13 +133,13 @@ export function normalizeLessonAnswer(value: string): string {
 
 function answerNumericValue(value: string): number | undefined {
   const normalized = normalizeLessonAnswer(value)
-  if (/^[+-]?\\d+\\/[+-]?\\d+$/.test(normalized)) {
+  if (/^[+-]?\d+\/[+-]?\d+$/.test(normalized)) {
     const parts = normalized.split('/')
     const denominator = Number(parts[1])
     if (!denominator) return undefined
     return Number(parts[0]) / denominator
   }
-  if (/^[+-]?\\d+(?:\\.\\d+)?$/.test(normalized)) return Number(normalized)
+  if (/^[+-]?\d+(?:\\.\d+)?$/.test(normalized)) return Number(normalized)
   return undefined
 }
 
