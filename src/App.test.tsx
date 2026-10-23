@@ -4,13 +4,19 @@ import App from './App'
 import { learningPaths } from './data/curriculum'
 import { lessonContent } from './data/lessonContent'
 import { practiceQuestions } from './data/expandedQuestions'
-import { getLessonAssessment, isLessonAnswerCorrect, type LessonAssessmentQuestion } from './data/lessonAssessment'
+import { getLessonAnswerFeedback, getLessonAssessment, isLessonAnswerCorrect, type LessonAssessmentQuestion } from './data/lessonAssessment'
 import { advanceReviewSchedule, isReviewDue, scheduleFirstReview } from './math/spacedReview'
 import { lessonTeachingNotes } from './data/lessonTeachingNotes'
 
 function answerMasteryQuestion(question: LessonAssessmentQuestion, isLast: boolean) {
   if (question.type === 'short-answer') {
     fireEvent.change(screen.getByLabelText('নিজের উত্তর লিখো'), { target: { value: question.answer } })
+    if (question.reasoningAnswer) {
+      const rationale = Array.from(document.querySelectorAll('.assessment-reasoning-options button'))
+        .find((button) => button.textContent?.trim() === question.reasoningAnswer)
+      expect(rationale, 'Expected the correct reasoning choice to be visible').toBeDefined()
+      fireEvent.click(rationale!)
+    }
   } else if (question.type === 'ordered-steps') {
     const desired = question.correctOrder ?? []
     for (let targetIndex = 0; targetIndex < desired.length; targetIndex += 1) {
@@ -269,6 +275,9 @@ describe('Easy Math learning flow', () => {
           expect(new Set(question.options).size, question.id).toBe(question.options?.length)
         } else if (question.type === 'short-answer') {
           expect(isLessonAnswerCorrect(question, question.answer), question.id).toBe(true)
+          expect(question.reasoningPrompt, question.id).toBeTruthy()
+          expect(question.reasoningOptions, question.id).toContain(question.reasoningAnswer)
+          expect(new Set(question.reasoningOptions).size, question.id).toBe(question.reasoningOptions?.length)
         } else {
           expect(question.steps?.length, question.id).toBeGreaterThanOrEqual(3)
           expect(question.correctOrder?.length, question.id).toBe(question.steps?.length)
@@ -278,6 +287,54 @@ describe('Easy Math learning flow', () => {
     }
   })
 
+  it('requires learners to choose a valid explanation as well as enter the correct application answer', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: '১০–১১ বছর' }))
+    fireEvent.click(screen.getByRole('button', { name: 'দশমিক সংখ্যা খুলুন' }))
+    const assessment = getLessonAssessment('decimals', lessonContent.decimals)
+    for (let index = 0; index < 4; index += 1) answerMasteryQuestion(assessment[index], false)
+    const question = assessment[4]
+    expect(question.type).toBe('short-answer')
+    fireEvent.change(screen.getByLabelText('নিজের উত্তর লিখো'), { target: { value: question.answer } })
+    const verify = screen.getByRole('button', { name: /উত্তর যাচাই করি/ })
+    expect(verify).toBeDisabled()
+    const wrongReasoning = Array.from(document.querySelectorAll('.assessment-reasoning-options button'))
+      .find((button) => button.textContent?.trim() !== question.reasoningAnswer)
+    expect(wrongReasoning).toBeDefined()
+    fireEvent.click(wrongReasoning!)
+    expect(verify).toBeEnabled()
+    fireEvent.click(verify)
+    expect(screen.getByText(/উত্তরের মান সঠিক, কিন্তু বেছে নেওয়া যুক্তিটি সঠিক নয়/)).toBeInTheDocument()
+    expect(screen.getByText('সঠিক যুক্তি:', { exact: false })).toBeInTheDocument()
+  })
+
+  it('keeps the mobile navigation and lesson review launch usable at a narrow viewport', () => {
+    const originalWidth = window.innerWidth
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 })
+    localStorage.setItem('easy-math-progress-v1', JSON.stringify({
+      xp: 20, completedLessons: ['fraction-basics'], correctAnswers: 0, attempts: 0, streak: 1,
+      reviewSchedule: { 'fraction-basics': { dueAt: Date.now() - 1000, intervalIndex: 0, completedReviews: 0 } },
+    }))
+    render(<App />)
+    expect(document.querySelector('.mobile-bottom-nav')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'মেনু' }))
+    expect(document.querySelector('.sidebar')).toHaveClass('sidebar-open')
+    fireEvent.click(screen.getByRole('button', { name: 'মেনু বন্ধ করো' }))
+    expect(document.querySelector('.sidebar')).not.toHaveClass('sidebar-open')
+    fireEvent.click(screen.getByRole('button', { name: /পুনরায় মনে করি/ }))
+    expect(screen.getByRole('heading', { name: 'ভগ্নাংশের শুরু' })).toBeInTheDocument()
+    const reviewAssessment = getLessonAssessment('fraction-basics', lessonContent['fraction-basics'], 0)
+    for (let index = 0; index < 4; index += 1) answerMasteryQuestion(reviewAssessment[index], false)
+    expect(screen.getByLabelText('নিজের উত্তর লিখো')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('নিজের উত্তর লিখো'), { target: { value: reviewAssessment[4].answer } })
+    const correctReasoning = Array.from(document.querySelectorAll('.assessment-reasoning-options button'))
+      .find((button) => button.textContent?.trim() === reviewAssessment[4].reasoningAnswer)
+    expect(correctReasoning).toBeDefined()
+    fireEvent.click(correctReasoning!)
+    expect(screen.getByRole('button', { name: /উত্তর যাচাই করি/ })).toBeEnabled()
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth })
+  })
   it('requires at least 80 percent on a multi-question checkpoint before lesson completion', () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
@@ -305,11 +362,17 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(wrong!)
     fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
     expect(screen.getByText('এই পাঠের একটি সাধারণ ভুল')).toBeInTheDocument()
-    expect(screen.getByText(/তুমি “.*” বিকল্পটি বেছেছ/)).toBeInTheDocument()
+    expect(screen.getByText(getLessonAnswerFeedback(assessment[0], wrong!.textContent!.trim())!)).toBeInTheDocument()
     expect(screen.getAllByText(lessonTeachingNotes.decimals.commonError).length).toBeGreaterThan(1)
     expect(screen.getAllByText(lessonTeachingNotes.decimals.correction).length).toBeGreaterThan(1)
   })
 
+  it('uses authored feedback for specific wrong options in core lesson questions', () => {
+    const assessment = getLessonAssessment('decimals', lessonContent.decimals)
+    expect(getLessonAnswerFeedback(assessment[0], '০.৩১')).toMatch(/০.৬০ \+ ০.২৫/)
+    expect(getLessonAnswerFeedback(assessment[0], '০.৬৫')).toMatch(/দশমিকের ডান পাশের অঙ্কগুলোকে/)
+    expect(getLessonAnswerFeedback(assessment[0], assessment[0].answer)).toBeUndefined()
+  })
   it('rotates supplementary questions after a successful spaced-review cycle', () => {
     const base = lessonContent['decimals']
     const first = getLessonAssessment('decimals', base, 0)
