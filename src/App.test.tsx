@@ -11,6 +11,12 @@ import { lessonTeachingNotes } from './data/lessonTeachingNotes'
 function answerMasteryQuestion(question: LessonAssessmentQuestion, isLast: boolean) {
   if (question.type === 'short-answer') {
     fireEvent.change(screen.getByLabelText('নিজের উত্তর লিখো'), { target: { value: question.answer } })
+    if (question.reasoningAnswer) {
+      const rationale = Array.from(document.querySelectorAll('.assessment-reasoning-options button'))
+        .find((button) => button.textContent?.trim() === question.reasoningAnswer)
+      expect(rationale, 'Expected the correct reasoning choice to be visible').toBeDefined()
+      fireEvent.click(rationale!)
+    }
   } else if (question.type === 'ordered-steps') {
     const desired = question.correctOrder ?? []
     for (let targetIndex = 0; targetIndex < desired.length; targetIndex += 1) {
@@ -269,6 +275,9 @@ describe('Easy Math learning flow', () => {
           expect(new Set(question.options).size, question.id).toBe(question.options?.length)
         } else if (question.type === 'short-answer') {
           expect(isLessonAnswerCorrect(question, question.answer), question.id).toBe(true)
+          expect(question.reasoningPrompt, question.id).toBeTruthy()
+          expect(question.reasoningOptions, question.id).toContain(question.reasoningAnswer)
+          expect(new Set(question.reasoningOptions).size, question.id).toBe(question.reasoningOptions?.length)
         } else {
           expect(question.steps?.length, question.id).toBeGreaterThanOrEqual(3)
           expect(question.correctOrder?.length, question.id).toBe(question.steps?.length)
@@ -278,6 +287,46 @@ describe('Easy Math learning flow', () => {
     }
   })
 
+  it('requires learners to choose a valid explanation as well as enter the correct application answer', () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
+    fireEvent.click(screen.getByRole('button', { name: '১০–১১ বছর' }))
+    fireEvent.click(screen.getByRole('button', { name: 'দশমিক সংখ্যা খুলুন' }))
+    const assessment = getLessonAssessment('decimals', lessonContent.decimals)
+    for (let index = 0; index < 4; index += 1) answerMasteryQuestion(assessment[index], false)
+    const question = assessment[4]
+    expect(question.type).toBe('short-answer')
+    fireEvent.change(screen.getByLabelText('নিজের উত্তর লিখো'), { target: { value: question.answer } })
+    const verify = screen.getByRole('button', { name: /উত্তর যাচাই করি/ })
+    expect(verify).toBeDisabled()
+    const wrongReasoning = Array.from(document.querySelectorAll('.assessment-reasoning-options button'))
+      .find((button) => button.textContent?.trim() !== question.reasoningAnswer)
+    expect(wrongReasoning).toBeDefined()
+    fireEvent.click(wrongReasoning!)
+    expect(verify).toBeEnabled()
+    fireEvent.click(verify)
+    expect(screen.getByText(/উত্তরের মান সঠিক, কিন্তু বেছে নেওয়া যুক্তিটি সঠিক নয়/)).toBeInTheDocument()
+    expect(screen.getByText('সঠিক যুক্তি:', { exact: false })).toBeInTheDocument()
+  })
+
+  it('keeps the mobile navigation and lesson review launch usable at a narrow viewport', () => {
+    const originalWidth = window.innerWidth
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 })
+    localStorage.setItem('easy-math-progress-v1', JSON.stringify({
+      xp: 20, completedLessons: ['fraction-basics'], correctAnswers: 0, attempts: 0, streak: 1,
+      reviewSchedule: { 'fraction-basics': { dueAt: Date.now() - 1000, intervalIndex: 0, completedReviews: 0 } },
+    }))
+    render(<App />)
+    expect(document.querySelector('.mobile-bottom-nav')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'মেনু' }))
+    expect(document.querySelector('.sidebar')).toHaveClass('sidebar-open')
+    fireEvent.click(screen.getByRole('button', { name: 'মেনু বন্ধ করো' }))
+    expect(document.querySelector('.sidebar')).not.toHaveClass('sidebar-open')
+    fireEvent.click(screen.getByRole('button', { name: /পুনরায় মনে করি/ }))
+    expect(screen.getByRole('heading', { name: 'ভগ্নাংশের শুরু' })).toBeInTheDocument()
+    expect(screen.getByLabelText('নিজের উত্তর লিখো')).not.toBeInTheDocument()
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth })
+  })
   it('requires at least 80 percent on a multi-question checkpoint before lesson completion', () => {
     render(<App />)
     fireEvent.click(screen.getAllByRole('button', { name: 'শিখি' })[0])
