@@ -419,6 +419,51 @@ describe('Easy Math learning flow', () => {
     expect(isLessonAnswerCorrect(ratio, '৪:৬')).toBe(true)
     expect(isLessonAnswerCorrect(ratio, '৪:৭')).toBe(false)
   })
+  it('repeats the current review interval after a passing but imperfect recall score', () => {
+    const day = 24 * 60 * 60 * 1000
+    const completedAt = Date.UTC(2026, 0, 1)
+    let schedule = scheduleFirstReview(completedAt)
+    schedule = advanceReviewSchedule(schedule, completedAt + day, 5, 6)
+    expect(schedule.intervalIndex).toBe(0)
+    expect(schedule.dueAt).toBe(completedAt + 2 * day)
+    expect(schedule.lastReviewedAt).toBe(completedAt + day)
+    expect(schedule.lastScore).toBe(5)
+    expect(schedule.lastTotal).toBe(6)
+    schedule = advanceReviewSchedule(schedule, schedule.dueAt, 6, 6)
+    expect(schedule.intervalIndex).toBe(1)
+    expect(schedule.dueAt).toBe(completedAt + 2 * day + 3 * day)
+    expect(schedule.completedReviews).toBe(2)
+    expect(schedule.lastScore).toBe(6)
+  })
+
+  it('preserves review results while migrating existing local progress', () => {
+    const lastReviewedAt = Date.UTC(2026, 4, 1)
+    localStorage.setItem('easy-math-progress-v1', JSON.stringify({
+      xp: 50, completedLessons: ['fraction-basics'], correctAnswers: 5, attempts: 6, streak: 2,
+      reviewSchedule: { 'fraction-basics': { dueAt: Date.now() + 10000, intervalIndex: 1, completedReviews: 2, lastReviewedAt, lastScore: 5, lastTotal: 6 } },
+    }))
+    render(<App />)
+    const stored = JSON.parse(localStorage.getItem('easy-math-progress-v1') || '{}')
+    expect(stored.reviewSchedule['fraction-basics']).toMatchObject({
+      intervalIndex: 1, completedReviews: 2, lastReviewedAt, lastScore: 5, lastTotal: 6,
+    })
+  })
+
+  it('lets learners expand a due-review queue beyond the first three lessons', () => {
+    const lessons = learningPaths.flatMap((path) => path.lessons).slice(0, 5)
+    const reviewSchedule = Object.fromEntries(lessons.map((lesson) => [lesson.id, {
+      dueAt: Date.now() - 1000, intervalIndex: 0, completedReviews: 0,
+    }]))
+    localStorage.setItem('easy-math-progress-v1', JSON.stringify({
+      xp: 40, completedLessons: lessons.map((lesson) => lesson.id), correctAnswers: 0, attempts: 0, streak: 1, reviewSchedule,
+    }))
+    render(<App />)
+    expect(document.querySelectorAll('.spaced-review-row')).toHaveLength(3)
+    fireEvent.click(screen.getByRole('button', { name: /আরও 2টি পুনরালোচনা দেখো/ }))
+    expect(document.querySelectorAll('.spaced-review-row')).toHaveLength(5)
+    fireEvent.click(screen.getByRole('button', { name: 'কম দেখো' }))
+    expect(document.querySelectorAll('.spaced-review-row')).toHaveLength(3)
+  })
   it('schedules spaced reviews after one day, then three, seven and fourteen days', () => {
     const day = 24 * 60 * 60 * 1000
     const start = Date.UTC(2026, 0, 1)
@@ -457,6 +502,10 @@ describe('Easy Math learning flow', () => {
     expect(screen.queryByRole('heading', { name: 'আবার মনে করি' })).not.toBeInTheDocument()
     const stored = JSON.parse(localStorage.getItem('easy-math-progress-v1') || '{}')
     expect(stored.reviewSchedule['fraction-basics'].completedReviews).toBe(1)
+    expect(stored.reviewSchedule['fraction-basics'].intervalIndex).toBe(1)
+    expect(stored.reviewSchedule['fraction-basics'].lastScore).toBe(6)
+    expect(stored.reviewSchedule['fraction-basics'].lastTotal).toBe(6)
+    expect(stored.reviewSchedule['fraction-basics'].lastReviewedAt).toBeGreaterThan(0)
     expect(stored.reviewSchedule['fraction-basics'].dueAt).toBeGreaterThan(Date.now())
   })
 
