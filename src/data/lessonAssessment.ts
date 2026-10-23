@@ -1,5 +1,6 @@
 import { practiceQuestions } from './expandedQuestions'
 import { lessonTeachingNotes } from './lessonTeachingNotes'
+import { lessonContent } from './lessonContent'
 
 export type LessonAssessmentQuestion = {
   id: string
@@ -13,6 +14,9 @@ export type LessonAssessmentQuestion = {
   explanation: string
   responsePurpose?: 'application' | 'error-correction'
   distractorFeedback?: Readonly<Record<string, string>>
+  reasoningPrompt?: string
+  reasoningOptions?: readonly string[]
+  reasoningAnswer?: string
 }
 
 type BaseQuestion = {
@@ -176,6 +180,28 @@ export function getLessonAnswerFeedback(question: LessonAssessmentQuestion, resp
   if (question.type === 'short-answer') return 'তুমি লিখেছ “' + response + '”। সংখ্যার মান, চিহ্ন ও একক আবার মিলিয়ে দেখো।'
   return undefined
 }
+function attachReasoningCheck(question: LessonAssessmentQuestion, lessonId: string): LessonAssessmentQuestion {
+  if (question.type !== 'short-answer') return question
+  const note = lessonTeachingNotes[lessonId]
+  const lesson = lessonContent[lessonId]
+  const distractors = [note?.commonError, lesson?.mistake].filter(
+    (option): option is string => Boolean(option?.trim()) && option.trim() !== question.explanation.trim(),
+  )
+  const options = [question.explanation, ...distractors]
+  for (const fallback of [
+    'হিসাবের ধাপ না দেখে শুধু অনুমান করে উত্তর বেছে নাও।',
+    'প্রশ্নে দেওয়া তথ্য ও চিহ্ন না মিলিয়ে উত্তর লেখো।',
+  ]) {
+    if (options.length >= 3) break
+    if (!options.includes(fallback)) options.push(fallback)
+  }
+  return {
+    ...question,
+    reasoningPrompt: 'উত্তরের পক্ষে কোন ব্যাখ্যাটি সঠিক? একটি বেছে নাও।',
+    reasoningOptions: options.slice(0, 3),
+    reasoningAnswer: question.explanation,
+  }
+}
 export function getLessonAssessment(lessonId: string, base: BaseQuestion, reviewVariant = 0): LessonAssessmentQuestion[] {
   const byId = new Map<string, LessonAssessmentQuestion>(
     practiceQuestions.map((q) => [q.id, {
@@ -266,5 +292,6 @@ export function getLessonAssessment(lessonId: string, base: BaseQuestion, review
     answer: [...note.workedSteps].join('|'),
     explanation: 'সমাধানের ধাপ সাজানোর সময় আগের ধাপের ফল পরের ধাপে ব্যবহার হয়। সঠিক ক্রমে সাজিয়ে প্রতিটি ধাপের কারণও বোঝার চেষ্টা করো.',
   } : undefined
-  return [core, ...unique, ...(constructedResponse ? [constructedResponse] : []), ...(orderedSteps ? [orderedSteps] : [])]
+  const scoredApplication = constructedResponse ? attachReasoningCheck(constructedResponse, lessonId) : undefined
+  return [core, ...unique, ...(scoredApplication ? [scoredApplication] : []), ...(orderedSteps ? [orderedSteps] : [])]
 }
