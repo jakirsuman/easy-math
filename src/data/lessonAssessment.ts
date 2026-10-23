@@ -296,7 +296,7 @@ function attachReasoningCheck(question: LessonAssessmentQuestion, lessonId: stri
   const note = lessonTeachingNotes[lessonId]
   const lesson = lessonContent[lessonId]
   const distractors = [note?.commonError, lesson?.mistake].filter(
-    (option): option is string => Boolean(option?.trim()) && option.trim() !== question.explanation.trim(),
+    (option): option is string => option !== undefined && option.trim().length > 0 && option.trim() !== question.explanation.trim(),
   )
   const options = Array.from(new Set([question.explanation, ...distractors]))
   for (const fallback of [
