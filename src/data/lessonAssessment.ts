@@ -298,7 +298,7 @@ function attachReasoningCheck(question: LessonAssessmentQuestion, lessonId: stri
   const distractors = [note?.commonError, lesson?.mistake].filter(
     (option): option is string => Boolean(option?.trim()) && option.trim() !== question.explanation.trim(),
   )
-  const options = [question.explanation, ...distractors]
+  const options = Array.from(new Set([question.explanation, ...distractors]))
   for (const fallback of [
     'হিসাবের ধাপ না দেখে শুধু অনুমান করে উত্তর বেছে নাও।',
     'প্রশ্নে দেওয়া তথ্য ও চিহ্ন না মিলিয়ে উত্তর লেখো।',
