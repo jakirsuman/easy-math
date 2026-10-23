@@ -367,6 +367,20 @@ describe('Easy Math learning flow', () => {
     expect(screen.getAllByText(lessonTeachingNotes.decimals.correction).length).toBeGreaterThan(1)
   })
 
+  it('provides authored distractor feedback for every core lesson question', () => {
+    const lessons = learningPaths.flatMap((path) => path.lessons)
+    for (const lesson of lessons) {
+      const core = getLessonAssessment(lesson.id, lessonContent[lesson.id])[0]
+      const wrongOptions = (core.options ?? []).filter((option) => option !== core.answer)
+      expect(core.distractorFeedback, lesson.id).toBeDefined()
+      expect(wrongOptions.length, lesson.id).toBeGreaterThan(0)
+      for (const option of wrongOptions) {
+        const feedback = getLessonAnswerFeedback(core, option)
+        expect(feedback, lesson.id + ' / ' + option).toBeTruthy()
+        expect(feedback, lesson.id + ' / ' + option).not.toMatch(/এই প্রশ্নে সেটি সঠিক নয়/)
+      }
+    }
+  })
   it('uses authored feedback for specific wrong options in core lesson questions', () => {
     const assessment = getLessonAssessment('decimals', lessonContent.decimals)
     expect(getLessonAnswerFeedback(assessment[0], '০.৩১')).toMatch(/০.৬০ \+ ০.২৫/)
