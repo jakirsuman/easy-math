@@ -362,7 +362,7 @@ describe('Easy Math learning flow', () => {
     fireEvent.click(wrong!)
     fireEvent.click(screen.getByRole('button', { name: /উত্তর যাচাই করি/ }))
     expect(screen.getByText('এই পাঠের একটি সাধারণ ভুল')).toBeInTheDocument()
-    expect(screen.getByText(/তুমি “.*” বিকল্পটি বেছেছ/)).toBeInTheDocument()
+    expect(screen.getByText(getLessonAnswerFeedback(assessment[0], wrong!.textContent!.trim())!)).toBeInTheDocument()
     expect(screen.getAllByText(lessonTeachingNotes.decimals.commonError).length).toBeGreaterThan(1)
     expect(screen.getAllByText(lessonTeachingNotes.decimals.correction).length).toBeGreaterThan(1)
   })
@@ -370,7 +370,7 @@ describe('Easy Math learning flow', () => {
   it('uses authored feedback for specific wrong options in core lesson questions', () => {
     const assessment = getLessonAssessment('decimals', lessonContent.decimals)
     expect(getLessonAnswerFeedback(assessment[0], '০.৩১')).toMatch(/০.৬০ \+ ০.২৫/)
-    expect(getLessonAnswerFeedback(assessment[0], '০.৬৫')).toMatch(/দশমিকের ঘর মিলিয়ে/)
+    expect(getLessonAnswerFeedback(assessment[0], '০.৬৫')).toMatch(/দশমিকের ডান পাশের অঙ্কগুলোকে/)
     expect(getLessonAnswerFeedback(assessment[0], assessment[0].answer)).toBeUndefined()
   })
   it('rotates supplementary questions after a successful spaced-review cycle', () => {
